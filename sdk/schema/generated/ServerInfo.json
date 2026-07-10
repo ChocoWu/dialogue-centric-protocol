@@ -1,0 +1,68 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "Capabilities": {
+      "additionalProperties": false,
+      "description": "Server capability flags (SPEC \u00a71.10/\u00a71.11; D9). Typed + extensible via new MINOR fields.",
+      "properties": {
+        "auto_generate": {
+          "default": false,
+          "title": "Auto Generate",
+          "type": "boolean"
+        },
+        "verifier_routing": {
+          "default": false,
+          "title": "Verifier Routing",
+          "type": "boolean"
+        }
+      },
+      "title": "Capabilities",
+      "type": "object"
+    },
+    "ProviderInfo": {
+      "additionalProperties": false,
+      "description": "One advertised model provider (SPEC \u00a71.11). ``configured`` never exposes the credential.",
+      "properties": {
+        "configured": {
+          "title": "Configured",
+          "type": "boolean"
+        },
+        "provider": {
+          "minLength": 1,
+          "title": "Provider",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "configured"
+      ],
+      "title": "ProviderInfo",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What a DCP server advertises about itself (SPEC \u00a71.11; D9).",
+  "properties": {
+    "capabilities": {
+      "$ref": "#/$defs/Capabilities"
+    },
+    "dcp_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Dcp Version",
+      "type": "string"
+    },
+    "model_providers": {
+      "items": {
+        "$ref": "#/$defs/ProviderInfo"
+      },
+      "title": "Model Providers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "dcp_version"
+  ],
+  "title": "ServerInfo",
+  "type": "object"
+}

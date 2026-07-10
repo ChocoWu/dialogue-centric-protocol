@@ -1,0 +1,49 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "RoleCastEntry": {
+      "additionalProperties": false,
+      "description": "One role\u2192participant casting (SPEC \u00a72.4).",
+      "properties": {
+        "participant_id": {
+          "minLength": 1,
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "role_id": {
+          "minLength": 1,
+          "title": "Role Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role_id",
+        "participant_id"
+      ],
+      "title": "RoleCastEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The ``roles_cast`` record for auditability (SPEC \u00a72.4/\u00a74.6).",
+  "properties": {
+    "instance_id": {
+      "minLength": 1,
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "roles": {
+      "items": {
+        "$ref": "#/$defs/RoleCastEntry"
+      },
+      "title": "Roles",
+      "type": "array"
+    }
+  },
+  "required": [
+    "instance_id",
+    "roles"
+  ],
+  "title": "RolesCast",
+  "type": "object"
+}

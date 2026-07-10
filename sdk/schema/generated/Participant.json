@@ -1,0 +1,98 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "ModelBinding": {
+      "additionalProperties": false,
+      "description": "Which model backs a consumer (D7/D8; SPEC \u00a74.5b). No credential field \u2014\nthe API key is resolved from the environment by ``provider`` (D8 / TBD-30).",
+      "properties": {
+        "model": {
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "provider": {
+          "minLength": 1,
+          "title": "Provider",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model"
+      ],
+      "title": "ModelBinding",
+      "type": "object"
+    },
+    "RoleKind": {
+      "description": "Role/Participant kind (SPEC \u00a71.4/\u00a71.5; TBD-4 confirmed).",
+      "enum": [
+        "agent",
+        "human"
+      ],
+      "title": "RoleKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A server-level persistent identity, human or agent (SPEC \u00a71.5; D4/D8).",
+  "properties": {
+    "auth": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Auth"
+    },
+    "discoverable": {
+      "default": false,
+      "title": "Discoverable",
+      "type": "boolean"
+    },
+    "display_name": {
+      "minLength": 1,
+      "title": "Display Name",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/RoleKind"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "model_binding": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelBinding"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "participant_id": {
+      "minLength": 1,
+      "title": "Participant Id",
+      "type": "string"
+    },
+    "profile": {
+      "default": "",
+      "title": "Profile",
+      "type": "string"
+    }
+  },
+  "required": [
+    "participant_id",
+    "kind",
+    "display_name"
+  ],
+  "title": "Participant",
+  "type": "object"
+}

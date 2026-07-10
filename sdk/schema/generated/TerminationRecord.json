@@ -1,0 +1,34 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "TerminationStatus": {
+      "description": "Terminal status recorded in a TerminationRecord (SPEC \u00a72.10, \u00a74.6).",
+      "enum": [
+        "done",
+        "provisional",
+        "stopped",
+        "budget",
+        "error"
+      ],
+      "title": "TerminationStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Terminal status + reason (SPEC \u00a72.10/\u00a74.6).",
+  "properties": {
+    "reason": {
+      "title": "Reason",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/TerminationStatus"
+    }
+  },
+  "required": [
+    "status",
+    "reason"
+  ],
+  "title": "TerminationRecord",
+  "type": "object"
+}

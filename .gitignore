@@ -31,3 +31,8 @@ htmlcov/
 *.swp
 .idea/
 .vscode/
+
+schema/generated/*.json
+CLAUDE.md
+sdk/CHANGELOG.md
+sdk/PLAN.md

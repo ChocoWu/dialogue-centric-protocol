@@ -1,0 +1,23 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "additionalProperties": false,
+  "description": "Which model backs a consumer (D7/D8; SPEC \u00a74.5b). No credential field \u2014\nthe API key is resolved from the environment by ``provider`` (D8 / TBD-30).",
+  "properties": {
+    "model": {
+      "minLength": 1,
+      "title": "Model",
+      "type": "string"
+    },
+    "provider": {
+      "minLength": 1,
+      "title": "Provider",
+      "type": "string"
+    }
+  },
+  "required": [
+    "provider",
+    "model"
+  ],
+  "title": "ModelBinding",
+  "type": "object"
+}

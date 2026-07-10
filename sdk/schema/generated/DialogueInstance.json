@@ -1,0 +1,429 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "AccessTier": {
+      "description": "Per-instance access tier (SPEC \u00a71.6; D5). ``own`` \u2283 ``speak`` \u2283 ``observe``.",
+      "enum": [
+        "own",
+        "speak",
+        "observe"
+      ],
+      "title": "AccessTier",
+      "type": "string"
+    },
+    "Budget": {
+      "additionalProperties": false,
+      "description": "Instance budget: consumed vs. limits (SPEC \u00a74.2).",
+      "properties": {
+        "max_turns": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Turns"
+        },
+        "token_budget": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Token Budget"
+        },
+        "tokens_used": {
+          "default": 0,
+          "title": "Tokens Used",
+          "type": "integer"
+        },
+        "turns_used": {
+          "default": 0,
+          "title": "Turns Used",
+          "type": "integer"
+        }
+      },
+      "title": "Budget",
+      "type": "object"
+    },
+    "Event": {
+      "additionalProperties": false,
+      "description": "A protocol-level process record; substrate for restore/replay (SPEC \u00a71.9/\u00a74.6; D3).",
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "event_id": {
+          "minLength": 1,
+          "title": "Event Id",
+          "type": "string"
+        },
+        "instance_id": {
+          "minLength": 1,
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        },
+        "type": {
+          "$ref": "#/$defs/EventType"
+        }
+      },
+      "required": [
+        "event_id",
+        "instance_id",
+        "type",
+        "created_at"
+      ],
+      "title": "Event",
+      "type": "object"
+    },
+    "EventType": {
+      "description": "Event ``type`` taxonomy (SPEC \u00a71.9; TBD-9 confirmed, living/extensible).",
+      "enum": [
+        "template_registered",
+        "participant_registered",
+        "template_deprecated",
+        "instance_created",
+        "instance_started",
+        "turn_assigned",
+        "contribution_recorded",
+        "instance_terminated",
+        "roles_cast",
+        "participant_joined",
+        "participant_left",
+        "tier_changed",
+        "human_input_pending",
+        "human_input_addressed",
+        "gate_opened",
+        "gate_resolved",
+        "pre_action_verified",
+        "post_action_verified",
+        "revision_requested",
+        "verification_requested",
+        "context_injected"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
+    "Gate": {
+      "additionalProperties": false,
+      "description": "An open human gate on an instance (SPEC \u00a72.8). Minimal; TBD-18/8 refine.",
+      "properties": {
+        "gate_id": {
+          "minLength": 1,
+          "title": "Gate Id",
+          "type": "string"
+        },
+        "role_id": {
+          "minLength": 1,
+          "title": "Role Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gate_id",
+        "role_id"
+      ],
+      "title": "Gate",
+      "type": "object"
+    },
+    "InstanceStatus": {
+      "description": "DialogueInstance lifecycle status (SPEC \u00a71.3; TBD-3 confirmed).",
+      "enum": [
+        "created",
+        "running",
+        "awaiting",
+        "done",
+        "provisional",
+        "stopped",
+        "budget",
+        "error"
+      ],
+      "title": "InstanceStatus",
+      "type": "string"
+    },
+    "Message": {
+      "additionalProperties": false,
+      "description": "A finalized, immutable contribution to the transcript (SPEC \u00a71.8/\u00a74.6).",
+      "properties": {
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "instance_id": {
+          "minLength": 1,
+          "title": "Instance Id",
+          "type": "string"
+        },
+        "message_id": {
+          "minLength": 1,
+          "title": "Message Id",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "participant_id": {
+          "minLength": 1,
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "role_id": {
+          "minLength": 1,
+          "title": "Role Id",
+          "type": "string"
+        },
+        "speaker_kind": {
+          "$ref": "#/$defs/RoleKind"
+        },
+        "turn_id": {
+          "title": "Turn Id",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "message_id",
+        "instance_id",
+        "turn_id",
+        "role_id",
+        "participant_id",
+        "speaker_kind",
+        "content",
+        "created_at"
+      ],
+      "title": "Message",
+      "type": "object"
+    },
+    "PendingInput": {
+      "additionalProperties": false,
+      "description": "A queued asynchronous human input (SPEC \u00a72.6/\u00a72.8 concurrency model, TBD-25).",
+      "properties": {
+        "addressed": {
+          "default": false,
+          "title": "Addressed",
+          "type": "boolean"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content"
+        },
+        "from_participant": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From Participant"
+        },
+        "input_id": {
+          "minLength": 1,
+          "title": "Input Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_id",
+        "kind"
+      ],
+      "title": "PendingInput",
+      "type": "object"
+    },
+    "RoleKind": {
+      "description": "Role/Participant kind (SPEC \u00a71.4/\u00a71.5; TBD-4 confirmed).",
+      "enum": [
+        "agent",
+        "human"
+      ],
+      "title": "RoleKind",
+      "type": "string"
+    },
+    "RosterEntry": {
+      "additionalProperties": false,
+      "description": "An instance roster row: a participant, its tier, and (if cast) its role (SPEC \u00a74.2).",
+      "properties": {
+        "participant_id": {
+          "minLength": 1,
+          "title": "Participant Id",
+          "type": "string"
+        },
+        "role_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role Id"
+        },
+        "tier": {
+          "$ref": "#/$defs/AccessTier"
+        }
+      },
+      "required": [
+        "participant_id",
+        "tier"
+      ],
+      "title": "RosterEntry",
+      "type": "object"
+    },
+    "TemplateRef": {
+      "additionalProperties": false,
+      "description": "Reference to a registered template version (SPEC \u00a74.2).",
+      "properties": {
+        "template_id": {
+          "minLength": 1,
+          "title": "Template Id",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "template_id",
+        "version"
+      ],
+      "title": "TemplateRef",
+      "type": "object"
+    },
+    "Visibility": {
+      "description": "Instance visibility (SPEC \u00a71.6; D5).",
+      "enum": [
+        "public",
+        "unlisted",
+        "private"
+      ],
+      "title": "Visibility",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A running occurrence created from a template, carrying all runtime state\n(SPEC \u00a71.3/\u00a74.2; D1). Authoritative state is replayable from ``messages`` + ``events`` (D3).",
+  "properties": {
+    "budget": {
+      "$ref": "#/$defs/Budget"
+    },
+    "dcp_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Dcp Version",
+      "type": "string"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/Event"
+      },
+      "title": "Events",
+      "type": "array"
+    },
+    "instance_id": {
+      "minLength": 1,
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "messages": {
+      "items": {
+        "$ref": "#/$defs/Message"
+      },
+      "title": "Messages",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "open_gates": {
+      "items": {
+        "$ref": "#/$defs/Gate"
+      },
+      "title": "Open Gates",
+      "type": "array"
+    },
+    "owner": {
+      "minLength": 1,
+      "title": "Owner",
+      "type": "string"
+    },
+    "pending_inputs": {
+      "items": {
+        "$ref": "#/$defs/PendingInput"
+      },
+      "title": "Pending Inputs",
+      "type": "array"
+    },
+    "roster": {
+      "items": {
+        "$ref": "#/$defs/RosterEntry"
+      },
+      "title": "Roster",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/InstanceStatus",
+      "default": "created"
+    },
+    "template_ref": {
+      "$ref": "#/$defs/TemplateRef"
+    },
+    "turn": {
+      "default": 0,
+      "title": "Turn",
+      "type": "integer"
+    },
+    "visibility": {
+      "$ref": "#/$defs/Visibility",
+      "default": "private"
+    }
+  },
+  "required": [
+    "instance_id",
+    "template_ref",
+    "owner",
+    "dcp_version"
+  ],
+  "title": "DialogueInstance",
+  "type": "object"
+}

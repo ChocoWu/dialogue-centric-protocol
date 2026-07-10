@@ -1,0 +1,125 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "HumanPolicy": {
+      "additionalProperties": false,
+      "description": "Per-role wait window + timeout behavior for waited human roles (SPEC \u00a72.8; TBD-14).",
+      "properties": {
+        "on_timeout": {
+          "$ref": "#/$defs/OnTimeout",
+          "default": "finalize_provisional"
+        },
+        "wait_window_seconds": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wait Window Seconds"
+        }
+      },
+      "title": "HumanPolicy",
+      "type": "object"
+    },
+    "OnTimeout": {
+      "description": "Human-policy timeout behavior (SPEC \u00a72.8; TBD-14 confirmed).",
+      "enum": [
+        "continue",
+        "finalize_provisional"
+      ],
+      "title": "OnTimeout",
+      "type": "string"
+    },
+    "ResponseRequirement": {
+      "description": "Per-role wait/mandate policy (SPEC \u00a71.4; renamed from ``response_mode``; TBD-5).",
+      "enum": [
+        "required",
+        "optional",
+        "gate"
+      ],
+      "title": "ResponseRequirement",
+      "type": "string"
+    },
+    "RoleBinding": {
+      "additionalProperties": false,
+      "description": "A Role's intended participant (SPEC \u00a71.4). Empty => cast by capability/persona.",
+      "properties": {
+        "participant_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Participant Id"
+        }
+      },
+      "title": "RoleBinding",
+      "type": "object"
+    },
+    "RoleKind": {
+      "description": "Role/Participant kind (SPEC \u00a71.4/\u00a71.5; TBD-4 confirmed).",
+      "enum": [
+        "agent",
+        "human"
+      ],
+      "title": "RoleKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A dialogue-local identity defined by a template, filled by casting (SPEC \u00a71.4).",
+  "properties": {
+    "binding": {
+      "$ref": "#/$defs/RoleBinding"
+    },
+    "human_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HumanPolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "kind": {
+      "$ref": "#/$defs/RoleKind"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "persona": {
+      "default": "",
+      "title": "Persona",
+      "type": "string"
+    },
+    "response_requirement": {
+      "$ref": "#/$defs/ResponseRequirement",
+      "default": "optional"
+    },
+    "role_id": {
+      "minLength": 1,
+      "title": "Role Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "role_id",
+    "name",
+    "kind"
+  ],
+  "title": "Role",
+  "type": "object"
+}

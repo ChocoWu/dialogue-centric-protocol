@@ -1,0 +1,148 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "Availability": {
+      "description": "Pre-action candidate availability (SPEC \u00a71.7).",
+      "enum": [
+        "available",
+        "unavailable",
+        "waiting",
+        "timeout"
+      ],
+      "title": "Availability",
+      "type": "string"
+    },
+    "CapabilityMatch": {
+      "description": "Pre-action capability fit (SPEC \u00a71.7).",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "CapabilityMatch",
+      "type": "string"
+    },
+    "ContextSufficiency": {
+      "description": "Pre-action context sufficiency (SPEC \u00a71.7).",
+      "enum": [
+        "sufficient",
+        "insufficient"
+      ],
+      "title": "ContextSufficiency",
+      "type": "string"
+    },
+    "ExecutionFeasibility": {
+      "description": "Pre-action execution feasibility (SPEC \u00a71.7).",
+      "enum": [
+        "feasible",
+        "infeasible",
+        "uncertain"
+      ],
+      "title": "ExecutionFeasibility",
+      "type": "string"
+    },
+    "Issue": {
+      "additionalProperties": false,
+      "description": "A problem noted during oversight (SPEC \u00a71.7 ``issues[]``).",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "description"
+      ],
+      "title": "Issue",
+      "type": "object"
+    },
+    "Readiness": {
+      "description": "Pre-action speaker readiness (SPEC \u00a71.7).",
+      "enum": [
+        "ready",
+        "not_ready",
+        "uncertain"
+      ],
+      "title": "Readiness",
+      "type": "string"
+    },
+    "RecommendedAction": {
+      "description": "Pre-action recommended control action (SPEC \u00a71.7 recovery).",
+      "enum": [
+        "select_speaker",
+        "inject_context",
+        "choose_alternative",
+        "request_human",
+        "wait_gate",
+        "stop"
+      ],
+      "title": "RecommendedAction",
+      "type": "string"
+    },
+    "RoleState": {
+      "description": "Pre-action role state relative to the dialogue need (SPEC \u00a71.7).",
+      "enum": [
+        "needed",
+        "already_satisfied",
+        "overused",
+        "blocked"
+      ],
+      "title": "RoleState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Structured speaker-readiness record (SPEC \u00a71.7; TBD-7). Drives pre-action recovery (D11).",
+  "properties": {
+    "availability": {
+      "$ref": "#/$defs/Availability"
+    },
+    "capability_match": {
+      "$ref": "#/$defs/CapabilityMatch"
+    },
+    "context_sufficiency": {
+      "$ref": "#/$defs/ContextSufficiency"
+    },
+    "execution_feasibility": {
+      "$ref": "#/$defs/ExecutionFeasibility"
+    },
+    "issues": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "readiness": {
+      "$ref": "#/$defs/Readiness"
+    },
+    "recommended_action": {
+      "$ref": "#/$defs/RecommendedAction"
+    },
+    "recovered": {
+      "default": false,
+      "title": "Recovered",
+      "type": "boolean"
+    },
+    "role_state": {
+      "$ref": "#/$defs/RoleState"
+    }
+  },
+  "required": [
+    "readiness",
+    "availability",
+    "capability_match",
+    "role_state",
+    "context_sufficiency",
+    "execution_feasibility",
+    "recommended_action"
+  ],
+  "title": "PreActionVerification",
+  "type": "object"
+}

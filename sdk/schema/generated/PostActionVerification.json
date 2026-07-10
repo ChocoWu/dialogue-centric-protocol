@@ -1,0 +1,112 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "Assessment": {
+      "description": "Per-dimension post-action quality (relevance/consistency/\u2026 \u2014 SPEC \u00a71.7).",
+      "enum": [
+        "ok",
+        "weak",
+        "fail"
+      ],
+      "title": "Assessment",
+      "type": "string"
+    },
+    "Issue": {
+      "additionalProperties": false,
+      "description": "A problem noted during oversight (SPEC \u00a71.7 ``issues[]``).",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "description"
+      ],
+      "title": "Issue",
+      "type": "object"
+    },
+    "PostOutcome": {
+      "description": "Post-action routed control action (SPEC \u00a71.7).",
+      "enum": [
+        "continue",
+        "request_revision",
+        "request_verification",
+        "escalate_gate",
+        "stop"
+      ],
+      "title": "PostOutcome",
+      "type": "string"
+    },
+    "Verdict": {
+      "description": "Post-action overall judgment (SPEC \u00a71.7).",
+      "enum": [
+        "pass",
+        "revise",
+        "escalate",
+        "reject"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Structured output-verification record (SPEC \u00a71.7; resolves TBD-8). Drives routing (D11).",
+  "properties": {
+    "completeness": {
+      "$ref": "#/$defs/Assessment"
+    },
+    "escalated": {
+      "default": false,
+      "title": "Escalated",
+      "type": "boolean"
+    },
+    "grounding": {
+      "$ref": "#/$defs/Assessment"
+    },
+    "human_input_addressed": {
+      "title": "Human Input Addressed",
+      "type": "boolean"
+    },
+    "issues": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "outcome": {
+      "$ref": "#/$defs/PostOutcome"
+    },
+    "relevance": {
+      "$ref": "#/$defs/Assessment"
+    },
+    "role_consistency": {
+      "$ref": "#/$defs/Assessment"
+    },
+    "safety": {
+      "$ref": "#/$defs/Assessment"
+    },
+    "verdict": {
+      "$ref": "#/$defs/Verdict"
+    }
+  },
+  "required": [
+    "verdict",
+    "relevance",
+    "role_consistency",
+    "completeness",
+    "grounding",
+    "safety",
+    "human_input_addressed",
+    "outcome"
+  ],
+  "title": "PostActionVerification",
+  "type": "object"
+}

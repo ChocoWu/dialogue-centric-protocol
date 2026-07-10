@@ -1,0 +1,71 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "RoleKind": {
+      "description": "Role/Participant kind (SPEC \u00a71.4/\u00a71.5; TBD-4 confirmed).",
+      "enum": [
+        "agent",
+        "human"
+      ],
+      "title": "RoleKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A finalized, immutable contribution to the transcript (SPEC \u00a71.8/\u00a74.6).",
+  "properties": {
+    "content": {
+      "title": "Content",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "instance_id": {
+      "minLength": 1,
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "message_id": {
+      "minLength": 1,
+      "title": "Message Id",
+      "type": "string"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "participant_id": {
+      "minLength": 1,
+      "title": "Participant Id",
+      "type": "string"
+    },
+    "role_id": {
+      "minLength": 1,
+      "title": "Role Id",
+      "type": "string"
+    },
+    "speaker_kind": {
+      "$ref": "#/$defs/RoleKind"
+    },
+    "turn_id": {
+      "title": "Turn Id",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "message_id",
+    "instance_id",
+    "turn_id",
+    "role_id",
+    "participant_id",
+    "speaker_kind",
+    "content",
+    "created_at"
+  ],
+  "title": "Message",
+  "type": "object"
+}

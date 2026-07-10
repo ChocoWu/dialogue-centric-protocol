@@ -1,0 +1,68 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "EventType": {
+      "description": "Event ``type`` taxonomy (SPEC \u00a71.9; TBD-9 confirmed, living/extensible).",
+      "enum": [
+        "template_registered",
+        "participant_registered",
+        "template_deprecated",
+        "instance_created",
+        "instance_started",
+        "turn_assigned",
+        "contribution_recorded",
+        "instance_terminated",
+        "roles_cast",
+        "participant_joined",
+        "participant_left",
+        "tier_changed",
+        "human_input_pending",
+        "human_input_addressed",
+        "gate_opened",
+        "gate_resolved",
+        "pre_action_verified",
+        "post_action_verified",
+        "revision_requested",
+        "verification_requested",
+        "context_injected"
+      ],
+      "title": "EventType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A protocol-level process record; substrate for restore/replay (SPEC \u00a71.9/\u00a74.6; D3).",
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "event_id": {
+      "minLength": 1,
+      "title": "Event Id",
+      "type": "string"
+    },
+    "instance_id": {
+      "minLength": 1,
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    },
+    "type": {
+      "$ref": "#/$defs/EventType"
+    }
+  },
+  "required": [
+    "event_id",
+    "instance_id",
+    "type",
+    "created_at"
+  ],
+  "title": "Event",
+  "type": "object"
+}

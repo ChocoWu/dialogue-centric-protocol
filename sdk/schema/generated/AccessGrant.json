@@ -1,0 +1,51 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "AccessTier": {
+      "description": "Per-instance access tier (SPEC \u00a71.6; D5). ``own`` \u2283 ``speak`` \u2283 ``observe``.",
+      "enum": [
+        "own",
+        "speak",
+        "observe"
+      ],
+      "title": "AccessTier",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A participant's access tier on an instance (SPEC \u00a71.6/\u00a74.5; D5).",
+  "properties": {
+    "granted_at": {
+      "format": "date-time",
+      "title": "Granted At",
+      "type": "string"
+    },
+    "granted_by": {
+      "minLength": 1,
+      "title": "Granted By",
+      "type": "string"
+    },
+    "instance_id": {
+      "minLength": 1,
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "participant_id": {
+      "minLength": 1,
+      "title": "Participant Id",
+      "type": "string"
+    },
+    "tier": {
+      "$ref": "#/$defs/AccessTier"
+    }
+  },
+  "required": [
+    "instance_id",
+    "participant_id",
+    "tier",
+    "granted_by",
+    "granted_at"
+  ],
+  "title": "AccessGrant",
+  "type": "object"
+}
