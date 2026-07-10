@@ -1,6 +1,6 @@
 # Concepts
 
-This is the mental model behind the SDK. The normative source is [`../SPEC.md`](../SPEC.md); this
+This is the mental model behind the SDK. The normative source is [`SPEC.md`](SPEC.md); this
 guide is the readable companion. Section references (§) point into the spec.
 
 ## The core idea
