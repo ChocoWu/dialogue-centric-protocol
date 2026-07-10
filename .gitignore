@@ -1,0 +1,33 @@
+# --- secrets (never commit) ---
+.env
+.env.*
+!.env.example
+**/.env
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# --- databases / generated ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- tooling caches ---
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- editor / OS / local agent state ---
+.claude/
+.DS_Store
+*.swp
+.idea/
+.vscode/

@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dcp"
+version = "0.2.0.dev0"                     # package version (PEP 440); wire protocol version is "0.2.0"
+description = "Dialogue-centric Protocol — reference Python SDK for human-agent multi-agent dialogue"
+readme = "README.md"
+requires-python = ">=3.11"
+# license: TODO(owner) — choose before public release (Apache-2.0 / MIT). No LICENSE file committed yet.
+license = { text = "LicenseRef-UNLICENSED" }
+authors = [{ name = "DCP Authors" }]
+keywords = ["dialogue", "multi-agent", "protocol", "orchestration", "human-in-the-loop", "llm", "agents"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pydantic>=2",
+    "openai",
+    "anthropic",
+    "sqlalchemy>=2",
+    "starlette",
+    "uvicorn",
+    "sse-starlette",
+]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3"]
+local = []                                  # deferred: local-model provider
+dev = ["pytest", "pytest-asyncio", "ruff", "mypy", "httpx"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dcp"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src/dcp"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+warn_required_dynamic_aliases = true

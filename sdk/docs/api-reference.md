@@ -1,0 +1,182 @@
+# API reference
+
+The curated public surface of `dcp`. Everything here is importable from the top-level package
+(`from dcp import Server`) unless noted. Submodules (`dcp.schema`, `dcp.orchestration`, …) hold the
+full detail. Signatures are shown in a simplified form; the Pydantic models in `dcp.schema` are the
+authoritative contract (SPEC §4).
+
+```python
+import dcp
+dcp.__version__        # "0.2.0.dev0"  — package version (PEP 440)
+dcp.PROTOCOL_VERSION   # "0.2.0"       — wire protocol version
+```
+
+## Facade
+
+### `Server`
+The one-object entry point: store + registry + providers, with a run/resume method.
+
+```python
+Server(*, database_url=None, config=None, authenticator=None, generator=None)
+
+server.register_template(template)
+server.register_participant(participant)
+server.instantiate(template_ref, *, owner, visibility=None, instance_id=None) -> DialogueInstance
+server.server_info() -> ServerInfo
+await server.run(
+    instance_id, *, cast,                 # cast: dict[role_id -> participant_id]
+    agent_providers=None,                 # dict[participant_id -> ModelProvider]
+    orchestrator_provider=None,           # ModelProvider (else built from env)
+    oversight=None,                       # OversightPolicy
+    human_gateway=None,                   # HumanGateway
+) -> DialogueInstance
+```
+
+`run` restores the instance first and **resumes** if it is non-terminal.
+
+## Registry & Hosting  (`dcp.registry`)
+
+### `Registry`
+```python
+Registry(store, *, authenticator=None, dcp_version="0.2.0", generator=None, capabilities=None)
+
+# templates (immutable per (id, version))
+register_template(template) ; get_template(id, version) ; list_templates()
+await generate_template(query, *, constraints=None) -> DialogueTemplate   # needs a generator
+
+# participants
+register_participant(p) ; get_participant(id) ; list_participants(*, discoverable_only=False)
+
+# hosting
+instantiate(template_ref, *, owner, visibility=None, instance_id=None) -> DialogueInstance
+grant_access(instance_id, *, grantor, participant_id, tier) -> None
+join(instance_id, *, participant_id) -> DialogueInstance          # returns full replay
+leave(instance_id, *, participant_id) -> None
+get_instance(instance_id) -> DialogueInstance
+list_instances(*, caller=None) -> list[DialogueInstance]          # visibility-filtered
+restore(instance_id) -> DialogueInstance
+
+# introspection & auth
+server_info(env=None) -> ServerInfo
+authenticate(token) -> str
+```
+
+### Authentication
+```python
+Authenticator                     # Protocol: authenticate(token: str | None) -> str
+SimpleTokenAuthenticator(tokens: dict[str, str])      # token -> participant_id; else AuthError
+AnonymousAuthenticator(participant_id="@local")       # dev mode: any/None token -> the id
+```
+
+## Orchestration  (`dcp.orchestration`)
+
+### `Orchestrator`
+```python
+Orchestrator(*, store, template, instance_id, cast, participants, provider,
+             agent_providers=None, oversight=None, human_gateway=None,
+             max_recovery_attempts=3, max_revisions=2)
+
+await orchestrator.run() -> DialogueInstance          # runs or resumes to a terminal status
+orchestrator.submit_open_mic(input_id, content, from_participant)   # if template.allow_open_mic
+orchestrator.address_open_mic(input_id, addressed_by)
+```
+
+### Oversight policies
+```python
+OversightPolicy       # Protocol: async pre(role, transcript) / post(role, message, transcript)
+DefaultOversight()    # deterministic all-pass (key-free happy path)
+LlmOversight(provider)                 # asks the model for the structured records
+ScriptedOversight(*, pre=[...], post=[...])   # FIFO of records — for tests
+```
+
+### Human gateway
+```python
+HumanGateway          # Protocol: async request(*, role, policy, blocking) -> HumanReply
+HumanReply(content: str | None = None, decision: str | None = None)   # content None == timeout
+ScriptedHumanGateway({role_id: HumanReply})           # test gateway
+```
+
+### Termination helper
+```python
+resolve_termination(*, errored=False, over_budget=False, over_turns=False,
+                    gate_timeout=False, done=False) -> TerminationStatus | None
+# priority: error > budget > stopped > provisional > done
+```
+
+## Model providers  (`dcp.provider`)
+
+```python
+ModelProvider         # Protocol: async text(instructions, content) -> str
+                      #           async structured(instructions, content, schema) -> BaseModel
+MockProvider(*, texts=[...], structured_queue=[...], structured_by_type={...})   # no network/key
+OpenAIProvider(model, *, api_key=None)         # dcp.provider.openai_provider
+AnthropicProvider(model, *, api_key=None)      # dcp.provider.anthropic_provider
+
+build_provider(binding: ModelBinding, *, api_key=None) -> ModelProvider   # per-binding factory (D8)
+orchestrator_binding(config: Config) -> ModelBinding                      # env default binding
+available_providers(env=None) -> list[ProviderInfo]                       # for ServerInfo
+```
+
+## State  (`dcp.state`)
+
+```python
+Store                 # Protocol — the persistence edge
+SqlStore(url="sqlite:///:memory:")             # SQLAlchemy 2.x; SQLite dev / Postgres prod
+restore(store, instance_id) -> DialogueInstance                # full replay (D3)
+replay(header, records) -> DialogueInstance                    # pure reducer
+InstanceHeader(...)   # the immutable base of an instance (not derived from the log)
+```
+
+## Participation  (`dcp.participation`)
+
+```python
+cast_roles(template, participants: list[Participant], instance_id, tiers=None) -> RolesCast
+ParticipantRegistry(store)                     # register / get / list
+tier_allows(held, required) -> bool ; can_speak(tier) ; can_observe(tier) ; assert_castable(tier)
+```
+
+## Delivery  (`dcp.delivery`)
+
+```python
+build_app(registry) -> starlette.Starlette     # REST + SSE app
+HttpSseDelivery(registry)                       # .asgi() -> app ; .run(host, port)
+Delivery                                        # Protocol (transport-agnostic seam)
+```
+
+## Authoring  (`dcp.authoring`)
+
+```python
+TemplateGenerator(provider)
+await generator.generate(query, *, constraints=None) -> DialogueTemplate   # a draft (unregistered)
+```
+
+## Config & errors
+
+```python
+Config(model_provider="openai", model=None, database_url="sqlite:///./dcp.db")
+Config.from_env(env=None) -> Config
+Config.api_key_for(provider, env=None) -> str | None
+load_dotenv(path=".env", *, override=False)
+
+DCPError              # base; subclasses: SchemaError, AccessError, AuthError, RegistryError,
+                      # OrchestrationError, ProviderError, TerminationError
+```
+
+## Schema  (`dcp.schema`)
+
+The authoritative models (SPEC §4). Key types:
+
+- **Entities:** `DialogueTemplate`, `DialogueInstance`, `Role`, `Participant`, `Message`, `Event`
+- **Values:** `TemplateRef`, `ModelBinding`, `TerminationPolicy`, `Flow`, `Edge`, `HumanPolicy`,
+  `Budget`, `RosterEntry`, `AccessGrant`, `Gate`, `PendingInput`, `Capabilities`, `ProviderInfo`,
+  `ServerInfo`
+- **Records:** `PreActionVerification`, `PostActionVerification`, `TerminationRecord`, `RolesCast`,
+  `Issue`
+- **Enums:** `InstanceStatus`, `TerminationStatus`, `RoleKind`, `ResponseRequirement`, `AccessTier`,
+  `Visibility`, `OrchestrationMode`, `OnTimeout`, `EventType`, and the verification enums
+  (`Readiness`, `Availability`, `CapabilityMatch`, `RoleState`, `ContextSufficiency`,
+  `ExecutionFeasibility`, `RecommendedAction`, `Verdict`, `Assessment`, `PostOutcome`)
+- **Helper:** `is_resumable(status) -> bool` ; `TERMINAL_STATUSES`
+
+Every model rejects unknown top-level fields (`extra="forbid"`); `Message` and `Event` are frozen.
+Regenerate JSON Schemas with `python scripts/gen_schema.py` (they are generated, never hand-edited).

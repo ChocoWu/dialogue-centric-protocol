@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+PY=./.venv/bin
+echo "== ruff =="; $PY/ruff check .
+echo "== mypy =="; $PY/mypy
+echo "== pytest =="; $PY/pytest -q

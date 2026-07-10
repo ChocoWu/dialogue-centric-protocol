@@ -1,0 +1,134 @@
+<svg viewBox="0 0 1240 680" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6B7280"/>
+    </marker>
+    <marker id="arrowP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7C3AED"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="38" font-size="20" font-weight="bold" fill="#111827">DCP Entity Overview</text>
+  <text x="40" y="58" font-size="13" fill="#6B7280">server-level (registered, persistent) vs. instance-level (one running dialogue) · Orchestrator = control entity, not a participant</text>
+
+  <!-- ===================== SERVER LEVEL ===================== -->
+  <rect x="40" y="80" width="380" height="560" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="60" y="108" font-size="14" font-weight="bold" fill="#1D4ED8">SERVER LEVEL — registered &amp; persistent</text>
+  <text x="60" y="126" font-size="11.5" fill="#3B82F6">Registry surface: ParticipantCatalog · TemplateCatalog 〔D2〕</text>
+
+  <!-- Participant card -->
+  <rect x="60" y="142" width="340" height="210" rx="8" fill="#FFFFFF" stroke="#93C5FD" stroke-width="1.2"/>
+  <text x="76" y="167" font-size="15" font-weight="bold" fill="#111827">Participant  〔D4〕</text>
+  <line x1="76" y1="176" x2="384" y2="176" stroke="#DBEAFE" stroke-width="1"/>
+  <text x="76" y="196" font-size="12" fill="#374151">participant_id · kind: <tspan font-weight="bold">agent | human</tspan></text>
+  <text x="76" y="215" font-size="12" fill="#374151">display_name · profile (capabilities / persona)</text>
+  <text x="76" y="234" font-size="12" fill="#374151">auth: bearer token → pluggable Authenticator 〔D6〕</text>
+  <text x="76" y="253" font-size="12" fill="#374151">discoverable: true | false  (findability, D4)</text>
+  <text x="76" y="272" font-size="12" fill="#374151">model_binding {provider, model} — agent only 〔D8〕</text>
+  <text x="76" y="291" font-size="12" fill="#374151">metadata (extension point)</text>
+  <text x="76" y="318" font-size="11.5" font-style="italic" fill="#6B7280">Server-level identity — distinct from the</text>
+  <text x="76" y="334" font-size="11.5" font-style="italic" fill="#6B7280">dialogue-local Role it is cast into.</text>
+
+  <!-- Template card -->
+  <rect x="60" y="372" width="340" height="248" rx="8" fill="#FFFFFF" stroke="#93C5FD" stroke-width="1.2"/>
+  <text x="76" y="397" font-size="15" font-weight="bold" fill="#111827">DialogueTemplate  〔D1〕</text>
+  <line x1="76" y1="406" x2="384" y2="406" stroke="#DBEAFE" stroke-width="1"/>
+  <text x="76" y="426" font-size="12" fill="#374151">template_id + version — <tspan font-weight="bold">immutable per version</tspan></text>
+  <text x="76" y="445" font-size="12" fill="#374151">title · topic · goal</text>
+  <text x="76" y="464" font-size="12" fill="#374151">termination_policy {condition, max_turns,</text>
+  <text x="90" y="481" font-size="12" fill="#374151">token_budget}</text>
+  <text x="76" y="500" font-size="12" fill="#374151">roles[]  (Role definitions)</text>
+  <text x="76" y="519" font-size="12" fill="#374151">flow {entry, edges[]} · orchestration {mode: plan | flow}</text>
+  <text x="76" y="538" font-size="12" fill="#374151">human_policy_defaults · default_visibility</text>
+  <text x="76" y="557" font-size="12" fill="#374151">metadata (extension point)</text>
+  <text x="76" y="586" font-size="11.5" font-style="italic" fill="#6B7280">The reusable, registerable definition;</text>
+  <text x="76" y="602" font-size="11.5" font-style="italic" fill="#6B7280">a change = a new version.</text>
+
+  <!-- ===================== INSTANCE LEVEL ===================== -->
+  <rect x="470" y="80" width="520" height="560" rx="12" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+  <text x="490" y="108" font-size="14" font-weight="bold" fill="#B45309">INSTANCE LEVEL — one running dialogue</text>
+
+  <!-- Instance header -->
+  <rect x="490" y="122" width="480" height="118" rx="8" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1.2"/>
+  <text x="506" y="146" font-size="15" font-weight="bold" fill="#111827">DialogueInstance  〔D1〕</text>
+  <line x1="506" y1="155" x2="954" y2="155" stroke="#FEF3C7" stroke-width="1"/>
+  <text x="506" y="174" font-size="12" fill="#374151">instance_id · template_ref {template_id, version} · dcp_version</text>
+  <text x="506" y="193" font-size="12" fill="#374151">owner (participant_id) · visibility: public | unlisted | <tspan font-weight="bold">private</tspan> 〔D5〕</text>
+  <text x="506" y="212" font-size="12" fill="#374151">status: created → running ⇄ awaiting → terminal · turn</text>
+  <text x="506" y="231" font-size="12" fill="#374151">budget {turns_used, tokens_used, limits}</text>
+
+  <!-- Role card -->
+  <rect x="490" y="256" width="232" height="160" rx="8" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1.2"/>
+  <text x="504" y="279" font-size="14" font-weight="bold" fill="#111827">Role  (dialogue-local)</text>
+  <line x1="504" y1="288" x2="708" y2="288" stroke="#FEF3C7" stroke-width="1"/>
+  <text x="504" y="306" font-size="11.5" fill="#374151">role_id · name · kind: agent | human</text>
+  <text x="504" y="324" font-size="11.5" fill="#374151">persona</text>
+  <text x="504" y="342" font-size="11.5" fill="#374151">response_requirement:</text>
+  <text x="518" y="358" font-size="11.5" font-weight="bold" fill="#374151">required | optional | gate</text>
+  <text x="504" y="378" font-size="11.5" fill="#374151">binding {participant_id?}</text>
+  <text x="504" y="396" font-size="11.5" fill="#374151">human_policy {wait_window, on_timeout}</text>
+
+  <!-- Roster / AccessGrant card -->
+  <rect x="738" y="256" width="232" height="160" rx="8" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1.2"/>
+  <text x="752" y="279" font-size="14" font-weight="bold" fill="#111827">Roster · AccessGrant 〔D5〕</text>
+  <line x1="752" y1="288" x2="956" y2="288" stroke="#FEF3C7" stroke-width="1"/>
+  <text x="752" y="306" font-size="11.5" fill="#374151">{participant_id, tier,</text>
+  <text x="766" y="322" font-size="11.5" fill="#374151">granted_by, granted_at}</text>
+  <text x="752" y="344" font-size="11.5" fill="#374151">tiers:  <tspan font-weight="bold">own ⊃ speak ⊃ observe</tspan></text>
+  <text x="752" y="362" font-size="11.5" fill="#374151">exactly one owner per instance</text>
+  <text x="752" y="380" font-size="11.5" fill="#374151">observers = observe tier</text>
+  <text x="752" y="396" font-size="11.5" fill="#374151">(not a role kind) · open mic if enabled</text>
+
+  <!-- Log card -->
+  <rect x="490" y="432" width="480" height="108" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.2"/>
+  <text x="506" y="456" font-size="14" font-weight="bold" fill="#92400E">Append-only log 〔D3〕:  messages[] + events[]</text>
+  <text x="506" y="478" font-size="12" fill="#78350F">Message = finalized semantic contribution (immutable)</text>
+  <text x="506" y="497" font-size="12" fill="#78350F">Event = process record (lifecycle · participation · oversight · registry)</text>
+  <text x="506" y="521" font-size="12" font-style="italic" fill="#92400E">Authoritative &amp; fully replayable — restore = full replay of this log.</text>
+
+  <!-- Gates / pending inputs -->
+  <rect x="490" y="556" width="480" height="60" rx="8" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1.2"/>
+  <text x="506" y="580" font-size="12.5" font-weight="bold" fill="#374151">open_gates[]  ·  pending_inputs[]</text>
+  <text x="506" y="600" font-size="11.5" fill="#6B7280">queued async human input (enrichment · open mic · gate responses) — serialized by orchestrator</text>
+
+  <!-- ===================== ORCHESTRATOR ===================== -->
+  <rect x="1030" y="190" width="190" height="330" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="1046" y="218" font-size="15" font-weight="bold" fill="#5B21B6">Orchestrator</text>
+  <text x="1046" y="238" font-size="11.5" fill="#6D28D9">dialogue control + oversight</text>
+  <text x="1046" y="254" font-size="11.5" font-weight="bold" fill="#6D28D9">NOT a participant</text>
+  <line x1="1046" y1="264" x2="1204" y2="264" stroke="#DDD6FE" stroke-width="1"/>
+  <text x="1046" y="283" font-size="11.5" fill="#4C1D95">select_speaker</text>
+  <text x="1046" y="300" font-size="11.5" fill="#4C1D95">inject_context</text>
+  <text x="1046" y="317" font-size="11.5" fill="#4C1D95">request_human</text>
+  <text x="1046" y="334" font-size="11.5" fill="#4C1D95">request_revision</text>
+  <text x="1046" y="351" font-size="11.5" fill="#4C1D95">request_verification</text>
+  <text x="1046" y="368" font-size="11.5" fill="#4C1D95">resolve_gate</text>
+  <text x="1046" y="385" font-size="11.5" fill="#4C1D95">stop</text>
+  <line x1="1046" y1="396" x2="1204" y2="396" stroke="#DDD6FE" stroke-width="1"/>
+  <text x="1046" y="415" font-size="11" fill="#6D28D9">pre-action + post-action</text>
+  <text x="1046" y="430" font-size="11" fill="#6D28D9">oversight, every turn</text>
+  <text x="1046" y="452" font-size="11" fill="#6D28D9">model_binding {provider,</text>
+  <text x="1046" y="467" font-size="11" fill="#6D28D9">model} — instance default 〔D8〕</text>
+  <text x="1046" y="489" font-size="11" fill="#6D28D9">restorable: rehydrates all</text>
+  <text x="1046" y="504" font-size="11" fill="#6D28D9">state from the log 〔D3〕</text>
+
+  <!-- ===================== ARROWS ===================== -->
+  <!-- template -> instance -->
+  <path d="M 400 490 C 435 490, 435 200, 470 185" fill="none" stroke="#6B7280" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <text x="408" y="330" font-size="11.5" font-weight="bold" fill="#374151" transform="rotate(-90 418 330)"> </text>
+  <text x="424" y="248" font-size="11.5" font-weight="bold" fill="#374151">instantiate</text>
+  <text x="424" y="262" font-size="10.5" fill="#6B7280">owner · visibility</text>
+
+  <!-- participant -> role (cast) -->
+  <path d="M 400 250 C 445 250, 445 320, 490 326" fill="none" stroke="#6B7280" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <text x="424" y="296" font-size="11.5" font-weight="bold" fill="#374151">cast into</text>
+
+
+  <!-- orchestrator -> instance -->
+  <path d="M 1030 280 C 1010 280, 1006 285, 990 290" fill="none" stroke="#7C3AED" stroke-width="1.8" marker-end="url(#arrowP)"/>
+
+  <!-- log -> orchestrator (restore) -->
+  <path d="M 970 486 C 1000 486, 1010 470, 1030 460" fill="none" stroke="#7C3AED" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrowP)"/>
+  <text x="1002" y="512" font-size="11" fill="#6D28D9" text-anchor="middle">restore =</text>
+  <text x="1002" y="525" font-size="11" fill="#6D28D9" text-anchor="middle">full replay</text>
+</svg>

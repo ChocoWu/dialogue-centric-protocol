@@ -1,0 +1,132 @@
+<svg viewBox="0 0 1240 600" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6B7280"/>
+    </marker>
+    <marker id="a3g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="38" font-size="20" font-weight="bold" fill="#111827">DCP Dialogue Lifecycle</text>
+  <text x="40" y="58" font-size="13" fill="#6B7280">template authoring → registration → instantiation → casting → joining → turn loop → restore/replay → termination (§2)</text>
+
+  <!-- ============ Row 1: server-side stages ============ -->
+  <!-- 1 -->
+  <rect x="40" y="90" width="212" height="104" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="56" y="114" font-size="13" font-weight="bold" fill="#1D4ED8">1 · Author template</text>
+  <text x="56" y="134" font-size="11" fill="#1E40AF">by hand, or auto-generate</text>
+  <text x="56" y="150" font-size="11" fill="#1E40AF">(optional capability):</text>
+  <text x="56" y="166" font-size="11" fill="#1E40AF">{query, constraints?} →</text>
+  <text x="56" y="182" font-size="11" fill="#1E40AF">valid DialogueTemplate, then edit</text>
+
+  <!-- 2 -->
+  <rect x="292" y="90" width="212" height="104" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="308" y="114" font-size="13" font-weight="bold" fill="#1D4ED8">2 · register_template</text>
+  <text x="308" y="134" font-size="11" fill="#1E40AF">→ TemplateCatalog 〔D2〕</text>
+  <text x="308" y="150" font-size="11" fill="#1E40AF">(template_id, version) pinned;</text>
+  <text x="308" y="166" font-size="11" fill="#1E40AF">immutable — change = new version</text>
+  <text x="308" y="182" font-size="11" font-style="italic" fill="#3B82F6">template_registered</text>
+
+  <!-- 3 -->
+  <rect x="544" y="90" width="212" height="104" rx="10" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+  <text x="560" y="114" font-size="13" font-weight="bold" fill="#B45309">3 · instantiate</text>
+  <text x="560" y="134" font-size="11" fill="#78350F">caller becomes owner 〔D5〕</text>
+  <text x="560" y="150" font-size="11" fill="#78350F">visibility: public|unlisted|private</text>
+  <text x="560" y="166" font-size="11" fill="#78350F">status: created</text>
+  <text x="560" y="182" font-size="11" font-style="italic" fill="#B45309">instance_created</text>
+
+  <!-- 4 -->
+  <rect x="796" y="90" width="212" height="104" rx="10" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+  <text x="812" y="114" font-size="13" font-weight="bold" fill="#B45309">4 · Role casting</text>
+  <text x="812" y="134" font-size="11" fill="#78350F">explicit binding → id match →</text>
+  <text x="812" y="150" font-size="11" fill="#78350F">capability → persona fallback</text>
+  <text x="812" y="166" font-size="11" fill="#78350F">speak role needs ≥ speak tier</text>
+  <text x="812" y="182" font-size="11" font-style="italic" fill="#B45309">roles_cast (audited)</text>
+
+  <!-- 5 -->
+  <rect x="1008" y="230" width="212" height="104" rx="10" fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
+  <text x="1024" y="254" font-size="13" font-weight="bold" fill="#065F46">5 · join / leave (multi-user)</text>
+  <text x="1024" y="274" font-size="11" fill="#047857">by visibility + tier 〔D2, D5〕</text>
+  <text x="1024" y="290" font-size="11" fill="#047857">public → auto observe;</text>
+  <text x="1024" y="306" font-size="11" fill="#047857">joiner receives full replay 〔D3〕</text>
+  <text x="1024" y="322" font-size="11" fill="#047857">applied between turns only</text>
+
+  <!-- row1 arrows -->
+  <line x1="252" y1="142" x2="292" y2="142" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+  <line x1="504" y1="142" x2="544" y2="142" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+  <line x1="756" y1="142" x2="796" y2="142" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+  <path d="M 1008 142 C 1080 142, 1114 180, 1114 230" fill="none" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+
+  <!-- ============ Turn loop region ============ -->
+  <rect x="40" y="250" width="700" height="200" rx="12" fill="#FAFAF9" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="60" y="278" font-size="13" font-weight="bold" fill="#5B21B6">TURN LOOP  —  status: running ⇄ awaiting  ·  transcript serialized by the orchestrator</text>
+
+  <rect x="60" y="300" width="200" height="120" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.4"/>
+  <text x="76" y="324" font-size="12.5" font-weight="bold" fill="#5B21B6">6 · Turn orchestration</text>
+  <text x="76" y="344" font-size="10.5" fill="#6D28D9">pre-action oversight →</text>
+  <text x="76" y="359" font-size="10.5" fill="#6D28D9">control action (§1.7)</text>
+  <text x="76" y="376" font-size="10.5" fill="#6D28D9">mode plan: free selection</text>
+  <text x="76" y="391" font-size="10.5" fill="#6D28D9">mode flow: follow flow graph</text>
+  <text x="76" y="408" font-size="10.5" fill="#6D28D9">joins/tier changes apply here</text>
+
+  <rect x="290" y="300" width="200" height="120" rx="10" fill="#ECFDF5" stroke="#059669" stroke-width="1.4"/>
+  <text x="306" y="324" font-size="12.5" font-weight="bold" fill="#065F46">7 · Contribution</text>
+  <text x="306" y="344" font-size="10.5" fill="#047857">selected participant speaks</text>
+  <text x="306" y="359" font-size="10.5" fill="#047857">→ Message (immutable)</text>
+  <text x="306" y="374" font-size="10.5" fill="#047857">→ contribution_recorded event</text>
+  <text x="306" y="391" font-size="10.5" fill="#047857">then post-action oversight</text>
+  <text x="306" y="406" font-size="10.5" fill="#047857">+ termination check</text>
+
+  <rect x="520" y="300" width="200" height="120" rx="10" fill="#ECFDF5" stroke="#059669" stroke-width="1.4"/>
+  <text x="536" y="324" font-size="12.5" font-weight="bold" fill="#065F46">8 · Human intervention</text>
+  <text x="536" y="344" font-size="10.5" fill="#047857">optional enrichment · required</text>
+  <text x="536" y="359" font-size="10.5" fill="#047857">input · approval gate · open mic</text>
+  <text x="536" y="376" font-size="10.5" fill="#047857">async input → pending_inputs[]</text>
+  <text x="536" y="391" font-size="10.5" fill="#047857">gate open ⇒ status: awaiting</text>
+  <text x="536" y="406" font-size="10.5" fill="#047857">timeout per human_policy</text>
+
+  <line x1="260" y1="360" x2="290" y2="360" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+  <line x1="490" y1="360" x2="520" y2="360" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+  <path d="M 620 420 C 620 440, 160 445, 160 420" fill="none" stroke="#059669" stroke-width="1.6" marker-end="url(#a3g)"/>
+  <text x="390" y="443" font-size="10.5" font-weight="bold" fill="#059669" text-anchor="middle">next turn</text>
+
+  <!-- entry into loop -->
+  <path d="M 650 194 C 650 220, 400 230, 160 300" fill="none" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+  <text x="470" y="232" font-size="10.5" font-style="italic" fill="#6B7280">instance_started → running</text>
+
+  <!-- ============ Restore / replay ============ -->
+  <rect x="780" y="360" width="200" height="120" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="796" y="384" font-size="12.5" font-weight="bold" fill="#1D4ED8">9 · Restore / Replay 〔D3〕</text>
+  <text x="796" y="404" font-size="10.5" fill="#1E40AF">restore(instance_id) =</text>
+  <text x="796" y="419" font-size="10.5" fill="#1E40AF">full ordered messages[]+events[]</text>
+  <text x="796" y="436" font-size="10.5" fill="#1E40AF">one mechanism for orchestrator</text>
+  <text x="796" y="451" font-size="10.5" fill="#1E40AF">rehydration and late joiners</text>
+  <text x="796" y="468" font-size="10.5" fill="#1E40AF">(log is authoritative)</text>
+  <path d="M 780 420 L 740 400" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a3)"/>
+  <path d="M 1080 334 C 1060 350, 1010 370, 980 396" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a3)"/>
+  <text x="1054" y="376" font-size="10" fill="#2563EB">joiner catch-up</text>
+
+  <!-- ============ Termination ============ -->
+  <rect x="1020" y="380" width="200" height="130" rx="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="1036" y="404" font-size="12.5" font-weight="bold" fill="#991B1B">10 · Termination</text>
+  <text x="1036" y="424" font-size="10.5" fill="#B91C1C">done · provisional · stopped ·</text>
+  <text x="1036" y="439" font-size="10.5" fill="#B91C1C">budget · error  (each + reason)</text>
+  <text x="1036" y="458" font-size="10.5" fill="#B91C1C">priority: error &gt; budget &gt;</text>
+  <text x="1036" y="473" font-size="10.5" fill="#B91C1C">stopped &gt; provisional &gt; done</text>
+  <text x="1036" y="492" font-size="10.5" font-style="italic" fill="#DC2626">instance_terminated</text>
+  <path d="M 740 372 C 800 330, 950 350, 1020 402" fill="none" stroke="#6B7280" stroke-width="1.8" marker-end="url(#a3)"/>
+  <text x="880" y="336" font-size="10.5" fill="#6B7280">terminal condition met</text>
+
+  <!-- ============ status ribbon ============ -->
+  <text x="40" y="530" font-size="12" font-weight="bold" fill="#111827">Instance status machine:</text>
+  <rect x="220" y="512" width="88" height="28" rx="14" fill="#F3F4F6" stroke="#9CA3AF"/><text x="264" y="531" font-size="11.5" text-anchor="middle" fill="#374151">created</text>
+  <line x1="308" y1="526" x2="348" y2="526" stroke="#6B7280" stroke-width="1.6" marker-end="url(#a3)"/>
+  <rect x="348" y="512" width="88" height="28" rx="14" fill="#ECFDF5" stroke="#059669"/><text x="392" y="531" font-size="11.5" text-anchor="middle" fill="#065F46">running</text>
+  <line x1="436" y1="519" x2="476" y2="519" stroke="#6B7280" stroke-width="1.4" marker-end="url(#a3)"/>
+  <line x1="476" y1="533" x2="436" y2="533" stroke="#6B7280" stroke-width="1.4" marker-end="url(#a3)"/>
+  <rect x="476" y="512" width="92" height="28" rx="14" fill="#FFFBEB" stroke="#D97706"/><text x="522" y="531" font-size="11.5" text-anchor="middle" fill="#92400E">awaiting</text>
+  <line x1="568" y1="526" x2="608" y2="526" stroke="#6B7280" stroke-width="1.6" marker-end="url(#a3)"/>
+  <rect x="608" y="512" width="380" height="28" rx="14" fill="#FEE2E2" stroke="#DC2626"/><text x="798" y="531" font-size="11.5" text-anchor="middle" fill="#991B1B">done | provisional | stopped | budget | error</text>
+  <text x="522" y="558" font-size="10" fill="#6B7280" text-anchor="middle">awaiting = open gate / pending required human input</text>
+</svg>

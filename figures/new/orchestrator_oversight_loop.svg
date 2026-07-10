@@ -1,0 +1,106 @@
+<svg viewBox="0 0 1240 640" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6B7280"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#DC2626"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="38" font-size="20" font-weight="bold" fill="#111827">Orchestrator Oversight Loop</text>
+  <text x="40" y="58" font-size="13" fill="#6B7280">oversight is applied before and after each participant action; termination is checked every turn (§2.6, §2.10)</text>
+
+  <!-- 1 Assess needs -->
+  <rect x="40" y="120" width="185" height="84" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="132" y="152" font-size="13.5" font-weight="bold" fill="#5B21B6" text-anchor="middle">Assess dialogue needs</text>
+  <text x="132" y="172" font-size="11.5" fill="#6D28D9" text-anchor="middle">generate candidate</text>
+  <text x="132" y="187" font-size="11.5" fill="#6D28D9" text-anchor="middle">speakers</text>
+
+  <!-- 2 Pre-action oversight -->
+  <rect x="275" y="92" width="225" height="176" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="387" y="118" font-size="13.5" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Pre-action Oversight</text>
+  <text x="291" y="140" font-size="11.5" fill="#1E40AF">✓ availability</text>
+  <text x="291" y="157" font-size="11.5" fill="#1E40AF">✓ capability match</text>
+  <text x="291" y="174" font-size="11.5" fill="#1E40AF">✓ role state</text>
+  <text x="291" y="191" font-size="11.5" fill="#1E40AF">✓ context sufficiency</text>
+  <text x="291" y="208" font-size="11.5" fill="#1E40AF">✓ execution feasibility</text>
+  <text x="291" y="232" font-size="10.5" font-style="italic" fill="#3B82F6">→ PreActionVerification record</text>
+  <text x="291" y="248" font-size="10.5" font-style="italic" fill="#3B82F6">(pre_action_verified event)</text>
+
+  <!-- 3 select_speaker -->
+  <rect x="550" y="120" width="150" height="84" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="625" y="156" font-size="13.5" font-weight="bold" fill="#5B21B6" text-anchor="middle">select_speaker</text>
+  <text x="625" y="176" font-size="11.5" fill="#6D28D9" text-anchor="middle">(turn_assigned)</text>
+
+  <!-- 4 contribution -->
+  <rect x="750" y="120" width="180" height="84" rx="10" fill="#ECFDF5" stroke="#059669" stroke-width="1.5"/>
+  <text x="840" y="150" font-size="13.5" font-weight="bold" fill="#065F46" text-anchor="middle">Participant</text>
+  <text x="840" y="167" font-size="13.5" font-weight="bold" fill="#065F46" text-anchor="middle">contribution</text>
+  <text x="840" y="188" font-size="11.5" fill="#047857" text-anchor="middle">→ Message + Event</text>
+
+  <!-- 5 Post-action oversight -->
+  <rect x="980" y="92" width="225" height="196" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1092" y="118" font-size="13.5" font-weight="bold" fill="#1D4ED8" text-anchor="middle">Post-action Oversight</text>
+  <text x="996" y="140" font-size="11.5" fill="#1E40AF">✓ relevance to goal</text>
+  <text x="996" y="157" font-size="11.5" fill="#1E40AF">✓ role consistency</text>
+  <text x="996" y="174" font-size="11.5" fill="#1E40AF">✓ completeness</text>
+  <text x="996" y="191" font-size="11.5" fill="#1E40AF">✓ grounding / factuality</text>
+  <text x="996" y="208" font-size="11.5" fill="#1E40AF">✓ safety</text>
+  <text x="996" y="225" font-size="11.5" fill="#1E40AF">✓ human input addressed</text>
+  <text x="996" y="250" font-size="10.5" font-style="italic" fill="#3B82F6">→ PostActionVerification record</text>
+  <text x="996" y="266" font-size="10.5" font-style="italic" fill="#3B82F6">(post_action_verified event)</text>
+
+  <!-- top-row arrows -->
+  <line x1="225" y1="162" x2="275" y2="162" stroke="#6B7280" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="500" y1="162" x2="550" y2="162" stroke="#6B7280" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="525" y="152" font-size="11" font-weight="bold" fill="#059669" text-anchor="middle">ready</text>
+  <line x1="700" y1="162" x2="750" y2="162" stroke="#6B7280" stroke-width="1.8" marker-end="url(#arr)"/>
+  <line x1="930" y1="162" x2="980" y2="162" stroke="#6B7280" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- Recovery box (not ready) -->
+  <rect x="275" y="330" width="270" height="150" rx="10" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="410" y="356" font-size="13" font-weight="bold" fill="#991B1B" text-anchor="middle">No candidate ready → recovery</text>
+  <text x="291" y="380" font-size="11.5" fill="#B91C1C">· inject_context (missing context)</text>
+  <text x="291" y="398" font-size="11.5" fill="#B91C1C">· request_human (solicit input)</text>
+  <text x="291" y="416" font-size="11.5" fill="#B91C1C">· choose an alternative speaker</text>
+  <text x="291" y="434" font-size="11.5" fill="#B91C1C">· wait for an open gate</text>
+  <text x="291" y="452" font-size="11.5" fill="#B91C1C">· terminate provisionally</text>
+  <path d="M 360 268 L 360 330" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrR)"/>
+  <text x="352" y="304" font-size="11" font-weight="bold" fill="#DC2626" text-anchor="end">not ready</text>
+  <path d="M 275 420 C 150 420, 132 300, 132 204" fill="none" stroke="#DC2626" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrR)"/>
+  <text x="150" y="330" font-size="10.5" fill="#DC2626">re-assess</text>
+
+  <!-- Outcome box -->
+  <rect x="920" y="330" width="285" height="168" rx="10" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+  <text x="1062" y="356" font-size="13" font-weight="bold" fill="#92400E" text-anchor="middle">Outcome</text>
+  <text x="936" y="380" font-size="11.5" fill="#78350F">· continue → termination check</text>
+  <text x="936" y="398" font-size="11.5" fill="#78350F">· request_revision → back to speaker</text>
+  <text x="936" y="416" font-size="11.5" fill="#78350F">· request_verification → verifier role</text>
+  <text x="936" y="434" font-size="11.5" fill="#78350F">· escalate_gate → human approval gate</text>
+  <text x="936" y="452" font-size="11.5" fill="#78350F">· stop → terminate</text>
+  <text x="936" y="478" font-size="10.5" font-style="italic" fill="#B45309">async human inputs are queued in pending_inputs[]</text>
+  <path d="M 1092 288 L 1092 330" fill="none" stroke="#6B7280" stroke-width="1.6" marker-end="url(#arr)"/>
+
+  <!-- request_revision back to contribution -->
+  <path d="M 920 400 C 850 400, 840 300, 840 204" fill="none" stroke="#D97706" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <text x="856" y="300" font-size="10.5" fill="#B45309">request_revision</text>
+
+  <!-- Termination check -->
+  <rect x="470" y="530" width="450" height="84" rx="10" fill="#F9FAFB" stroke="#374151" stroke-width="1.5"/>
+  <text x="695" y="556" font-size="13" font-weight="bold" fill="#111827" text-anchor="middle">Termination check — every turn, after post-action oversight</text>
+  <text x="695" y="578" font-size="11.5" fill="#374151" text-anchor="middle">priority:  error  &gt;  budget  &gt;  stopped  &gt;  provisional  &gt;  done</text>
+  <text x="695" y="598" font-size="11.5" fill="#374151" text-anchor="middle">done ⇒ termination condition satisfied  ∧  open_gates == []</text>
+  <path d="M 1000 498 C 1000 520, 960 540, 920 555" fill="none" stroke="#6B7280" stroke-width="1.6" marker-end="url(#arr)"/>
+  <text x="990" y="528" font-size="10.5" fill="#6B7280">continue</text>
+
+  <!-- loop back: not terminal -->
+  <path d="M 470 572 C 90 572, 60 300, 105 204" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="180" y="556" font-size="11.5" font-weight="bold" fill="#059669">not terminal → next turn</text>
+
+  <!-- terminated chip -->
+  <rect x="990" y="542" width="215" height="60" rx="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="1097" y="568" font-size="13" font-weight="bold" fill="#991B1B" text-anchor="middle">instance_terminated</text>
+  <text x="1097" y="588" font-size="11" fill="#B91C1C" text-anchor="middle">done · provisional · stopped · budget · error</text>
+  <path d="M 920 590 L 990 580" fill="none" stroke="#DC2626" stroke-width="1.6" marker-end="url(#arrR)"/>
+</svg>
