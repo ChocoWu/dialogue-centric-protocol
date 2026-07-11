@@ -14,9 +14,13 @@ from ..schema import TerminationStatus
 
 
 class OrchestratorAction(BaseModel):
-    """One control decision (plan mode): pick the next speaker, or stop (SPEC §1.7 subset)."""
+    """One control decision: pick the next speaker, stop, or suspend (SPEC §1.7 subset).
 
-    action: Literal["select_speaker", "stop"]
+    ``suspend`` pauses the dialogue **without** terminating it — the instance stays non-terminal and
+    a later ``run()`` resumes it (SPEC §2.9). ``stop`` ends it with a terminal ``status``.
+    """
+
+    action: Literal["select_speaker", "stop", "suspend"]
     target_role_id: str | None = None
     status: TerminationStatus = TerminationStatus.DONE   # terminal status when action == "stop"
     reason: str = ""

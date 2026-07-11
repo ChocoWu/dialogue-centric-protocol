@@ -15,6 +15,7 @@ from . import (
     orchestration,
     participation,
     plugins,
+    presets,
     provider,
     registry,
     schema,
@@ -27,6 +28,7 @@ from .errors import DCPError
 from .orchestration import ControlPolicy, DialogueContext, Orchestrator
 from .participation import ParticipantRegistry, cast_roles
 from .plugins import available_plugins, list_plugins, load_plugin
+from .presets import get_preset, list_presets
 from .provider import MockProvider, ModelProvider, available_providers, build_provider
 from .registry import (
     AnonymousAuthenticator,
@@ -69,6 +71,8 @@ __all__ = [
     "list_plugins",
     "available_plugins",
     "load_plugin",
+    "list_presets",
+    "get_preset",
     "HttpSseDelivery",
     "build_app",
     "config",
@@ -82,4 +86,5 @@ __all__ = [
     "delivery",
     "authoring",
     "plugins",
+    "presets",
 ]

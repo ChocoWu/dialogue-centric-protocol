@@ -83,8 +83,8 @@ class Visibility(StrEnum):
 class OrchestrationMode(StrEnum):
     """Orchestration mode (SPEC §2.6; TBD-12 confirmed)."""
 
-    PLAN = "plan"               # emergent — orchestrator selects freely
-    FLOW = "flow"               # deterministic — follow the declared flow graph
+    PLAN = "plan"               # emergent — orchestrator selects freely (flow, if any, is advisory)
+    FLOW = "flow"               # guided — succession constrained to the declared flow graph
 
 
 class OnTimeout(StrEnum):
@@ -193,6 +193,7 @@ class EventType(StrEnum):
     INSTANCE_STARTED = "instance_started"
     TURN_ASSIGNED = "turn_assigned"
     CONTRIBUTION_RECORDED = "contribution_recorded"
+    INSTANCE_SUSPENDED = "instance_suspended"     # paused, non-terminal — resumable later (§2.9)
     INSTANCE_TERMINATED = "instance_terminated"
     # participation
     ROLES_CAST = "roles_cast"

@@ -3,7 +3,7 @@
   "$defs": {
     "Edge": {
       "additionalProperties": false,
-      "description": "A flow edge \u2014 suggested/required succession between roles (SPEC \u00a72.6; TBD-11).",
+      "description": "A flow edge \u2014 an allowed succession between roles (SPEC \u00a72.6; TBD-11).\n\n``condition`` is free-text guidance (not machine-evaluated): at a branch it is shown to the\norchestrator's model to help it choose among the allowed next roles.",
       "properties": {
         "condition": {
           "anyOf": [
@@ -37,7 +37,7 @@
     },
     "Flow": {
       "additionalProperties": false,
-      "description": "Advisory (mode=plan) / binding (mode=flow) succession graph (SPEC \u00a72.6).",
+      "description": "A succession graph \u2014 may be non-linear (branches, loops) (SPEC \u00a72.6).\n\nThe **initial/default** order, not a rigid script: advisory under ``mode=plan`` (a hint), and\nguiding under ``mode=flow`` (succession is constrained to the edges; deterministic when a role\nhas one outgoing edge, model-chosen among the allowed roles at a branch). Either way the\noversight loop may adapt the realized path (e.g. switch to an alternative when a candidate isn't\nready).",
       "properties": {
         "edges": {
           "default": [],

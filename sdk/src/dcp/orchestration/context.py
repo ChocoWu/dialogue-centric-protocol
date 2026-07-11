@@ -17,12 +17,14 @@ from ..schema import (
     Budget,
     DialogueInstance,
     DialogueTemplate,
+    EventType,
     Flow,
     Gate,
     InstanceStatus,
     Message,
     OrchestrationMode,
     PendingInput,
+    RecommendedAction,
     Role,
     RosterEntry,
 )
@@ -53,6 +55,9 @@ class DialogueContext:
     pending_inputs: tuple[PendingInput, ...]
     budget: Budget
     provider: ModelProvider                      # the orchestrator's model, for LLM-based policies
+    #: Roles a pre-action check has judged unavailable in the current (pending) turn — a policy
+    #: re-selecting a speaker should skip these (log-derived; realizes ``choose_alternative``).
+    rejected_this_turn: frozenset[str] = frozenset()
 
     @classmethod
     def from_instance(
@@ -81,7 +86,26 @@ class DialogueContext:
             pending_inputs=tuple(instance.pending_inputs),
             budget=instance.budget,
             provider=provider,
+            rejected_this_turn=cls._rejected_this_turn(instance),
         )
+
+    @staticmethod
+    def _rejected_this_turn(instance: DialogueInstance) -> frozenset[str]:
+        """Roles a pre-check recommended replacing (``choose_alternative``) since the last turn.
+
+        Derived purely from the log: a ``turn_assigned`` (a speaker was successfully selected)
+        resets the set; a ``pre_action_verified`` recommending ``choose_alternative`` adds its role.
+        """
+        rejected: set[str] = set()
+        for event in instance.events:
+            if event.type is EventType.TURN_ASSIGNED:
+                rejected.clear()
+            elif event.type is EventType.PRE_ACTION_VERIFIED:
+                if event.payload.get("recommended_action") == RecommendedAction.CHOOSE_ALTERNATIVE:
+                    role_id = event.payload.get("role_id")
+                    if isinstance(role_id, str):
+                        rejected.add(role_id)
+        return frozenset(rejected)
 
     # --- convenience accessors (no state; pure reads) --------------------------------
     def transcript(self) -> str:

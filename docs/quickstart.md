@@ -116,9 +116,12 @@ See [guide-hosting.md](guide-hosting.md) for auth, access tiers, visibility, and
 
 - [concepts.md](concepts.md) — templates vs instances, roles vs participants, the five layers, and
   how the orchestrator's oversight loop drives control.
+- [guide-templates.md](guide-templates.md) — start from a preset template and adapt it.
 - [guide-hosting.md](guide-hosting.md) — multi-user hosting: registration, joining, access control,
   bearer auth, HTTP/SSE, and query→template auto-generation.
 - [guide-extending.md](guide-extending.md) — write and share a custom orchestrator, oversight policy,
   or template as a plugin.
+- [guide-research-companion.md](guide-research-companion.md) — a full flagship MAS: custom
+  orchestrator + grounding oversight + human gate, end to end.
 - [api-reference.md](api-reference.md) — the curated public API.
 - [`../SPEC.md`](../SPEC.md) — the normative behavior (every acceptance criterion has a conformance test).

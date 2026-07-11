@@ -100,6 +100,7 @@
         "instance_started",
         "turn_assigned",
         "contribution_recorded",
+        "instance_suspended",
         "instance_terminated",
         "roles_cast",
         "participant_joined",

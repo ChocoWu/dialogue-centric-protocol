@@ -38,12 +38,18 @@ def _msg(role: str, turn: int) -> s.Message:
         participant_id=role, speaker_kind=s.RoleKind.AGENT, content="x", created_at=_TS)
 
 
-def _ctx(template: s.DialogueTemplate, provider: object, *messages: s.Message) -> DialogueContext:
+def _ctx(template: s.DialogueTemplate, provider: object, *messages: s.Message,
+         rejected: tuple[str, ...] = ()) -> DialogueContext:
+    events = [
+        s.Event(event_id=f"pav{i}", instance_id="dlg", type=s.EventType.PRE_ACTION_VERIFIED,
+                payload={"role_id": r, "recommended_action": "choose_alternative"}, created_at=_TS)
+        for i, r in enumerate(rejected)
+    ]
     inst = s.DialogueInstance(
         instance_id="dlg", template_ref=s.TemplateRef(template_id="t", version="1.0.0"),
         owner="@o", visibility=s.Visibility.PRIVATE, dcp_version="0.2.0",
         status=s.InstanceStatus.RUNNING, turn=len(messages), roster=[],
-        messages=list(messages), events=[], open_gates=[], pending_inputs=[],
+        messages=list(messages), events=events, open_gates=[], pending_inputs=[],
         budget=s.Budget(turns_used=len(messages)))
     return DialogueContext.from_instance(inst, template, provider)  # type: ignore[arg-type]
 
@@ -57,17 +63,82 @@ async def test_plan_policy_delegates_to_the_model() -> None:
     assert action.action == "select_speaker" and action.target_role_id == "b"
 
 
+class _CapturingProvider:
+    """Records the instructions passed to ``structured`` so we can assert on the advisory hint."""
+
+    def __init__(self) -> None:
+        self.instructions = ""
+
+    async def text(self, *, instructions: str, content: str) -> str:
+        return ""
+
+    async def structured(self, *, instructions: str, content: str, schema: type) -> object:
+        self.instructions = instructions
+        return schema(action="stop", status=s.TerminationStatus.DONE)
+
+
+async def test_plan_policy_passes_flow_as_an_advisory_hint() -> None:
+    flow = s.Flow(entry="a", edges=[s.Edge(from_role="a", to_role="b")])
+    tmpl = _template(mode=s.OrchestrationMode.PLAN, flow=flow)
+    cap = _CapturingProvider()
+    await PlanPolicy().decide(_ctx(tmpl, cap, _msg("a", 1)))
+    assert "Advisory flow" in cap.instructions
+    assert "suggested next after a: b" in cap.instructions   # keyed off last_speaker
+
+
+async def test_plan_policy_has_no_hint_without_flow() -> None:
+    cap = _CapturingProvider()
+    await PlanPolicy().decide(_ctx(_template(), cap))         # plan template, no flow
+    assert "Advisory flow" not in cap.instructions
+
+
 async def test_flow_policy_follows_the_graph() -> None:
     tmpl = _template(mode=s.OrchestrationMode.FLOW,
                      flow=s.Flow(entry="a", edges=[s.Edge(from_role="a", to_role="b")]))
     policy = FlowPolicy()
     # no prior speaker -> entry
     assert (await policy.decide(_ctx(tmpl, MockProvider()))).target_role_id == "a"
-    # after a -> edge to b
+    # after a -> single edge to b (deterministic, no model needed)
     assert (await policy.decide(_ctx(tmpl, MockProvider(), _msg("a", 1)))).target_role_id == "b"
     # after b -> no edge -> stop
     end = await policy.decide(_ctx(tmpl, MockProvider(), _msg("a", 1), _msg("b", 2)))
     assert end.action == "stop"
+
+
+async def test_flow_policy_branch_lets_the_model_choose_among_allowed() -> None:
+    # from a, the flow allows b OR c; the model picks (constrained to those)
+    flow = s.Flow(entry="a", edges=[s.Edge(from_role="a", to_role="b"),
+                                    s.Edge(from_role="a", to_role="c")])
+    tmpl = _template(mode=s.OrchestrationMode.FLOW, flow=flow)
+    picks_c = MockProvider(structured_queue=[{"action": "select_speaker", "target_role_id": "c"}])
+    action = await FlowPolicy().decide(_ctx(tmpl, picks_c, _msg("a", 1)))
+    assert action.target_role_id == "c"
+
+
+async def test_flow_policy_branch_constrains_a_wandering_model() -> None:
+    # if the model picks a role OUTSIDE the allowed edges, it is constrained to the first allowed
+    flow = s.Flow(entry="a", edges=[s.Edge(from_role="a", to_role="b"),
+                                    s.Edge(from_role="a", to_role="c")])
+    tmpl = _template(mode=s.OrchestrationMode.FLOW, flow=flow)
+    wanders = MockProvider(structured_queue=[{"action": "select_speaker", "target_role_id": "z"}])
+    action = await FlowPolicy().decide(_ctx(tmpl, wanders, _msg("a", 1)))
+    assert action.target_role_id == "b"     # first allowed edge
+
+
+async def test_flow_policy_routes_around_a_rejected_branch() -> None:
+    # b was found unavailable this turn → the branch collapses to c, deterministically (no model)
+    flow = s.Flow(entry="a", edges=[s.Edge(from_role="a", to_role="b"),
+                                    s.Edge(from_role="a", to_role="c")])
+    tmpl = _template(mode=s.OrchestrationMode.FLOW, flow=flow)
+    action = await FlowPolicy().decide(_ctx(tmpl, MockProvider(), _msg("a", 1), rejected=("b",)))
+    assert action.action == "select_speaker" and action.target_role_id == "c"
+
+
+async def test_flow_policy_stops_when_the_only_next_is_rejected() -> None:
+    flow = s.Flow(entry="a", edges=[s.Edge(from_role="a", to_role="b")])
+    tmpl = _template(mode=s.OrchestrationMode.FLOW, flow=flow)
+    action = await FlowPolicy().decide(_ctx(tmpl, MockProvider(), _msg("a", 1), rejected=("b",)))
+    assert action.action == "stop"           # no available next in the flow
 
 
 # --- default selection preserves behavior (backward-compat) ------------------------------

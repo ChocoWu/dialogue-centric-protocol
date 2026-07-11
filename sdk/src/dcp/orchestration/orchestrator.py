@@ -314,7 +314,8 @@ class Orchestrator:
             ready = (pre.readiness is Readiness.READY
                      and pre.recommended_action is RecommendedAction.SELECT_SPEAKER)
             pre = pre.model_copy(update={"recovered": not ready})
-            self._emit(EventType.PRE_ACTION_VERIFIED, **pre.model_dump())
+            # record the checked role so "rejected this turn" is log-derivable (DialogueContext)
+            self._emit(EventType.PRE_ACTION_VERIFIED, role_id=role.role_id, **pre.model_dump())
             if ready:
                 return "ready"
             issues = "; ".join(i.description for i in pre.issues)
@@ -414,6 +415,10 @@ class Orchestrator:
             action = await self._decide()
             if action.action == "stop":
                 self._terminate(action.status, action.reason or "orchestrator stop")
+                break
+            if action.action == "suspend":
+                # pause WITHOUT terminating — instance stays non-terminal, resumes later (§2.9)
+                self._emit(EventType.INSTANCE_SUSPENDED, reason=action.reason or "suspended")
                 break
             role = self._resolve_role(action.target_role_id)
 

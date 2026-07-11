@@ -36,7 +36,11 @@ class TerminationPolicy(DCPModel):
 
 
 class Edge(DCPModel):
-    """A flow edge — suggested/required succession between roles (SPEC §2.6; TBD-11)."""
+    """A flow edge — an allowed succession between roles (SPEC §2.6; TBD-11).
+
+    ``condition`` is free-text guidance (not machine-evaluated): at a branch it is shown to the
+    orchestrator's model to help it choose among the allowed next roles.
+    """
 
     from_role: NonEmptyStr
     to_role: NonEmptyStr
@@ -44,7 +48,14 @@ class Edge(DCPModel):
 
 
 class Flow(DCPModel):
-    """Advisory (mode=plan) / binding (mode=flow) succession graph (SPEC §2.6)."""
+    """A succession graph — may be non-linear (branches, loops) (SPEC §2.6).
+
+    The **initial/default** order, not a rigid script: advisory under ``mode=plan`` (a hint), and
+    guiding under ``mode=flow`` (succession is constrained to the edges; deterministic when a role
+    has one outgoing edge, model-chosen among the allowed roles at a branch). Either way the
+    oversight loop may adapt the realized path (e.g. switch to an alternative when a candidate isn't
+    ready).
+    """
 
     entry: NonEmptyStr
     edges: list[Edge] = []

@@ -98,3 +98,37 @@ def test_context_is_immutable() -> None:
     ctx = _ctx()
     with pytest.raises(dataclasses.FrozenInstanceError):
         ctx.turn = 99  # type: ignore[misc]
+
+
+def _ev(i: int, t: s.EventType, **payload: object) -> s.Event:
+    return s.Event(event_id=f"e{i}", instance_id="dlg", type=t, payload=payload, created_at=_TS)
+
+
+def _instance_with_events(*events: s.Event) -> s.DialogueInstance:
+    return s.DialogueInstance(
+        instance_id="dlg", template_ref=s.TemplateRef(template_id="t", version="1.0.0"),
+        owner="@o", visibility=s.Visibility.PRIVATE, dcp_version="0.2.0",
+        status=s.InstanceStatus.RUNNING, turn=0, roster=[], messages=[],
+        events=list(events), open_gates=[], pending_inputs=[], budget=s.Budget())
+
+
+def test_rejected_this_turn_collects_choose_alternative_roles() -> None:
+    inst = _instance_with_events(
+        _ev(0, s.EventType.PRE_ACTION_VERIFIED, role_id="b",
+            recommended_action="choose_alternative"),
+        _ev(1, s.EventType.PRE_ACTION_VERIFIED, role_id="c", recommended_action="select_speaker"),
+    )
+    ctx = DialogueContext.from_instance(inst, _template(), MockProvider())
+    assert ctx.rejected_this_turn == frozenset({"b"})     # only the choose_alternative one
+
+
+def test_turn_assigned_resets_rejected() -> None:
+    inst = _instance_with_events(
+        _ev(0, s.EventType.PRE_ACTION_VERIFIED, role_id="b",
+            recommended_action="choose_alternative"),
+        _ev(1, s.EventType.TURN_ASSIGNED, target_role_id="c", turn=1),   # a speaker was assigned
+        _ev(2, s.EventType.PRE_ACTION_VERIFIED, role_id="x",
+            recommended_action="choose_alternative"),
+    )
+    ctx = DialogueContext.from_instance(inst, _template(), MockProvider())
+    assert ctx.rejected_this_turn == frozenset({"x"})     # b cleared by the turn boundary

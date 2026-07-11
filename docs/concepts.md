@@ -59,7 +59,9 @@ replays the ordered `messages + events` into a `DialogueInstance` — deriving `
 - **audit / evaluation** after the fact.
 
 An instance is **resumable** iff its status is non-terminal; `Orchestrator.run()` restores first and
-continues without re-emitting the bootstrap events.
+continues without re-emitting the bootstrap events. A run can also **suspend** on purpose (the
+`suspend` control action) — pausing without terminating so a later `run()` picks it up, which makes
+long-running, cross-session dialogues (e.g. awaiting a human who returns tomorrow) first-class.
 
 ## Lifecycle (§2)
 

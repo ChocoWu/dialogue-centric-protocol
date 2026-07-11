@@ -170,6 +170,16 @@ TemplateGenerator(provider)
 await generator.generate(query, *, constraints=None) -> DialogueTemplate   # a draft (unregistered)
 ```
 
+## Presets  (`dcp.presets`)
+
+Ready-to-use `DialogueTemplate` factories (see [guide-templates.md](guide-templates.md)).
+
+```python
+list_presets() -> list[str]                 # names
+get_preset(name) -> DialogueTemplate        # a fresh template (RegistryError if unknown)
+# direct factories: design_review() debate() brainstorm() red_team_review() research_companion()
+```
+
 ## Plugins  (`dcp.plugins`)
 
 Discover and load shareable components (control policies / oversight / templates) contributed by
