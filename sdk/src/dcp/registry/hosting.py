@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from ..authoring import TemplateGenerator
 from ..errors import AccessError, RegistryError
 from ..participation.tiers import tier_allows
+from ..plugins import available_plugins
 from ..provider import available_providers
 from ..schema import (
     AccessGrant,
@@ -65,11 +66,12 @@ class Registry:
 
     # --- server introspection (SPEC §1.11; D9) ---------------------------------------
     def server_info(self, env: Mapping[str, str] | None = None) -> ServerInfo:
-        """Advertise protocol version, capabilities, and available model providers (no keys)."""
+        """Advertise version, capabilities, providers, installed plugins (no keys; SPEC §1.11)."""
         return ServerInfo(
             dcp_version=self._dcp_version,
             capabilities=self._capabilities,
             model_providers=available_providers(env),
+            plugins=available_plugins(),
         )
 
     # --- template catalog (SPEC §2.1) ------------------------------------------------

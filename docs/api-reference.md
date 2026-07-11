@@ -74,11 +74,25 @@ AnonymousAuthenticator(participant_id="@local")       # dev mode: any/None token
 ```python
 Orchestrator(*, store, template, instance_id, cast, participants, provider,
              agent_providers=None, oversight=None, human_gateway=None,
-             max_recovery_attempts=3, max_revisions=2)
+             control_policy=None, max_recovery_attempts=3, max_revisions=2)
 
 await orchestrator.run() -> DialogueInstance          # runs or resumes to a terminal status
 orchestrator.submit_open_mic(input_id, content, from_participant)   # if template.allow_open_mic
 orchestrator.address_open_mic(input_id, addressed_by)
+```
+
+### Control policies (the orchestrator "brain")
+```python
+ControlPolicy         # Protocol: async decide(ctx: DialogueContext) -> OrchestratorAction
+PlanPolicy()          # emergent: ask the model for the next action (default in plan mode)
+FlowPolicy()          # deterministic: follow the template's flow graph (default in flow mode)
+# Supply your own via control_policy=... on Orchestrator or Server.run. See guide-extending.md.
+
+DialogueContext       # read-only, log-derived view passed to a policy:
+                      #   instance_id, goal, topic, termination_condition, max_turns, roles,
+                      #   orchestration_mode, flow, status, turn, last_speaker, roster, messages,
+                      #   open_gates, pending_inputs, budget, provider
+                      # helpers: transcript(), role(id), filled_role_ids(), over_turn_cap()
 ```
 
 ### Oversight policies
@@ -87,6 +101,12 @@ OversightPolicy       # Protocol: async pre(role, transcript) / post(role, messa
 DefaultOversight()    # deterministic all-pass (key-free happy path)
 LlmOversight(provider)                 # asks the model for the structured records
 ScriptedOversight(*, pre=[...], post=[...])   # FIFO of records — for tests
+
+# Compose one check per dimension instead of a whole policy:
+RubricOversight(*, relevance=None, role_consistency=None, completeness=None,
+                grounding=None, safety=None, verdict_fn=None)
+Check                 # Protocol: async (*, role, message, transcript) -> Assessment | CheckOutcome
+CheckOutcome(assessment: Assessment, issue: str | None = None)
 ```
 
 ### Human gateway
@@ -150,6 +170,23 @@ TemplateGenerator(provider)
 await generator.generate(query, *, constraints=None) -> DialogueTemplate   # a draft (unregistered)
 ```
 
+## Plugins  (`dcp.plugins`)
+
+Discover and load shareable components (control policies / oversight / templates) contributed by
+installed packages via entry points. See [guide-extending.md](guide-extending.md).
+
+```python
+GROUP_CONTROL_POLICIES = "dcp.control_policies"
+GROUP_OVERSIGHT_POLICIES = "dcp.oversight_policies"
+GROUP_TEMPLATES = "dcp.templates"
+
+list_plugins(group=None) -> list[PluginInfo]      # (group, name, value); nothing imported
+available_plugins() -> dict[str, list[str]]        # group -> names (feeds server_info.plugins)
+load_plugin(group, name) -> object                 # import the target on demand
+load_control_policy(name) / load_oversight_policy(name)
+load_template(name) -> DialogueTemplate            # resolves an instance or a 0-arg factory
+```
+
 ## Config & errors
 
 ```python
@@ -159,7 +196,7 @@ Config.api_key_for(provider, env=None) -> str | None
 load_dotenv(path=".env", *, override=False)
 
 DCPError              # base; subclasses: SchemaError, AccessError, AuthError, RegistryError,
-                      # OrchestrationError, ProviderError, TerminationError
+                      # OrchestrationError, ProviderError, TerminationError, PluginError
 ```
 
 ## Schema  (`dcp.schema`)

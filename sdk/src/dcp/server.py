@@ -12,7 +12,7 @@ from __future__ import annotations
 from .authoring import TemplateGenerator
 from .config import Config
 from .errors import RegistryError
-from .orchestration import HumanGateway, Orchestrator, OversightPolicy
+from .orchestration import ControlPolicy, HumanGateway, Orchestrator, OversightPolicy
 from .provider import ModelProvider, build_provider, orchestrator_binding
 from .registry import Authenticator, Registry
 from .schema import (
@@ -73,6 +73,7 @@ class Server:
         orchestrator_provider: ModelProvider | None = None,
         oversight: OversightPolicy | None = None,
         human_gateway: HumanGateway | None = None,
+        control_policy: ControlPolicy | None = None,
     ) -> DialogueInstance:
         """Run (or resume) ``instance_id`` to a terminal status (SPEC §2.6–§2.10, §2.9)."""
         inst = self.registry.restore(instance_id)
@@ -93,6 +94,7 @@ class Server:
             agent_providers=agent_providers,
             oversight=oversight,
             human_gateway=human_gateway,
+            control_policy=control_policy,
         )
         return await orchestrator.run()
 

@@ -14,6 +14,7 @@ from . import (
     errors,
     orchestration,
     participation,
+    plugins,
     provider,
     registry,
     schema,
@@ -23,8 +24,9 @@ from .authoring import TemplateGenerator
 from .config import Config, load_dotenv
 from .delivery import HttpSseDelivery, build_app
 from .errors import DCPError
-from .orchestration import Orchestrator
+from .orchestration import ControlPolicy, DialogueContext, Orchestrator
 from .participation import ParticipantRegistry, cast_roles
+from .plugins import available_plugins, list_plugins, load_plugin
 from .provider import MockProvider, ModelProvider, available_providers, build_provider
 from .registry import (
     AnonymousAuthenticator,
@@ -56,12 +58,17 @@ __all__ = [
     "build_provider",
     "available_providers",
     "Orchestrator",
+    "ControlPolicy",
+    "DialogueContext",
     "Registry",
     "Authenticator",
     "SimpleTokenAuthenticator",
     "AnonymousAuthenticator",
     "TemplateGenerator",
     "Server",
+    "list_plugins",
+    "available_plugins",
+    "load_plugin",
     "HttpSseDelivery",
     "build_app",
     "config",
@@ -74,4 +81,5 @@ __all__ = [
     "registry",
     "delivery",
     "authoring",
+    "plugins",
 ]

@@ -142,6 +142,8 @@ class ServerInfo(DCPModel):
     dcp_version: SemVer
     capabilities: Capabilities = Field(default_factory=Capabilities)
     model_providers: list[ProviderInfo] = Field(default_factory=list)
+    #: Installed plugins by entry-point group → names (dcp.plugins; 6.1d).
+    plugins: dict[str, list[str]] = Field(default_factory=dict)
 
 
 __all__ = [

@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "dcp"
 version = "0.2.0.dev0"                     # package version (PEP 440); wire protocol version is "0.2.0"
 description = "Dialogue-centric Protocol — reference Python SDK for human-agent multi-agent dialogue"
-readme = "README.md"
+readme = "../README.md"
 requires-python = ">=3.11"
 # license: TODO(owner) — choose before public release (Apache-2.0 / MIT). No LICENSE file committed yet.
 license = { text = "LicenseRef-UNLICENSED" }

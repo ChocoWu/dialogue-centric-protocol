@@ -6,10 +6,11 @@ a real model, then over HTTP. Every snippet here is exercised by the test suite 
 
 ## 1. Install (Python ≥ 3.11)
 
+Run everything from the repository root; the package lives in `sdk/`.
+
 ```bash
-cd sdk
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e "./sdk[dev]"
 ```
 
 Verify:
@@ -55,13 +56,14 @@ See [concepts.md](concepts.md) for the full model.
 ## 3. Run it with a real model
 
 `docs/examples/hello_dialogue.py` is the same dialogue, but the orchestrator and agents use a live
-provider (the founder's approval stays scripted so it's non-interactive). Configure a provider in a
-local `.env` (copy `.env.example`):
+provider (the founder's approval stays scripted so it's non-interactive). The example reads a local
+`.env` from the working directory (or your shell environment); copy the template and fill it in:
 
 ```bash
-DCP_MODEL_PROVIDER=openai        # or anthropic
-OPENAI_API_KEY=sk-...            # ANTHROPIC_API_KEY for anthropic
-DCP_MODEL=gpt-5.4                # the model id for that provider
+cp sdk/.env.example .env         # then edit .env
+# DCP_MODEL_PROVIDER=openai      # or anthropic
+# OPENAI_API_KEY=sk-...          # ANTHROPIC_API_KEY for anthropic
+# DCP_MODEL=gpt-5.4              # the model id for that provider
 ```
 
 ```bash
@@ -116,5 +118,7 @@ See [guide-hosting.md](guide-hosting.md) for auth, access tiers, visibility, and
   how the orchestrator's oversight loop drives control.
 - [guide-hosting.md](guide-hosting.md) — multi-user hosting: registration, joining, access control,
   bearer auth, HTTP/SSE, and query→template auto-generation.
+- [guide-extending.md](guide-extending.md) — write and share a custom orchestrator, oversight policy,
+  or template as a plugin.
 - [api-reference.md](api-reference.md) — the curated public API.
 - [`../SPEC.md`](../SPEC.md) — the normative behavior (every acceptance criterion has a conformance test).

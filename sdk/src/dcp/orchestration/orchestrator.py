@@ -34,8 +34,10 @@ from ..schema import (
 )
 from ..state import Store, restore
 from .actions import OrchestratorAction
+from .context import DialogueContext
 from .human import HumanGateway
 from .oversight import DefaultOversight, OversightPolicy
+from .policy import ControlPolicy, FlowPolicy, PlanPolicy
 
 
 class Orchestrator:
@@ -53,6 +55,7 @@ class Orchestrator:
         agent_providers: dict[str, ModelProvider] | None = None,
         oversight: OversightPolicy | None = None,
         human_gateway: HumanGateway | None = None,
+        control_policy: ControlPolicy | None = None,
         max_recovery_attempts: int = 3,
         max_revisions: int = 2,
     ) -> None:
@@ -65,6 +68,10 @@ class Orchestrator:
         self.agent_providers = agent_providers or {}
         self.oversight = oversight or DefaultOversight()
         self.human_gateway = human_gateway
+        # The "brain" (6.1b): default preserves prior behavior — FlowPolicy in flow mode, else Plan.
+        self.control_policy = control_policy or (
+            FlowPolicy() if template.orchestration.mode is OrchestrationMode.FLOW else PlanPolicy()
+        )
         self._max_recovery = max_recovery_attempts       # bound on pre-action recovery/turn (D11)
         self._max_revisions = max_revisions              # bound on post-action revisions (D11)
         self._roles = {r.role_id: r for r in template.roles}
@@ -144,24 +151,11 @@ class Orchestrator:
 
     # --- decisions -------------------------------------------------------------------
     async def _decide(self) -> OrchestratorAction:
-        if self.template.orchestration.mode is OrchestrationMode.FLOW:
-            return self._flow_decide()
-        return await self.provider.structured(
-            instructions="Choose the next role to speak, or stop the dialogue.",
-            content=self._transcript(),
-            schema=OrchestratorAction,
+        """Ask the control policy for the next action, over a read-only log-derived context."""
+        ctx = DialogueContext.from_instance(
+            restore(self.store, self.instance_id), self.template, self.provider
         )
-
-    def _flow_decide(self) -> OrchestratorAction:
-        flow = self.template.flow
-        if flow is None:
-            return OrchestratorAction(action="stop", reason="no flow defined")
-        if self._last_speaker is None:
-            return OrchestratorAction(action="select_speaker", target_role_id=flow.entry)
-        for edge in flow.edges:
-            if edge.from_role == self._last_speaker:
-                return OrchestratorAction(action="select_speaker", target_role_id=edge.to_role)
-        return OrchestratorAction(action="stop", status=TerminationStatus.DONE, reason="flow end")
+        return await self.control_policy.decide(ctx)
 
     # --- contribution ----------------------------------------------------------------
     async def _contribute(self, role: Role) -> tuple[TerminationStatus, str] | None:

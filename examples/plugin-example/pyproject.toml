@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dcp-plugin-example"
+version = "0.1.0"
+description = "Example DCP plugins — a custom control policy, oversight policy, and template"
+requires-python = ">=3.11"
+dependencies = ["dcp"]
+
+# --- this is how you SHARE DCP components: declare entry points ---
+[project.entry-points."dcp.control_policies"]
+round_robin = "dcp_plugin_example:RoundRobinPolicy"
+
+[project.entry-points."dcp.oversight_policies"]
+no_shouting = "dcp_plugin_example:NoShoutingOversight"
+
+[project.entry-points."dcp.templates"]
+two_agent_debate = "dcp_plugin_example:two_agent_debate"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dcp_plugin_example"]

@@ -41,6 +41,10 @@ class TerminationError(DCPError):
     """An instance could not be terminated cleanly (SPEC §2.10)."""
 
 
+class PluginError(DCPError):
+    """A pluggable component could not be discovered or loaded (dcp.plugins entry points)."""
+
+
 __all__ = [
     "DCPError",
     "SchemaError",
@@ -50,4 +54,5 @@ __all__ = [
     "OrchestrationError",
     "ProviderError",
     "TerminationError",
+    "PluginError",
 ]

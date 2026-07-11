@@ -58,6 +58,16 @@
       },
       "title": "Model Providers",
       "type": "array"
+    },
+    "plugins": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": "Plugins",
+      "type": "object"
     }
   },
   "required": [
