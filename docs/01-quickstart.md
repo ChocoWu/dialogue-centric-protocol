@@ -4,14 +4,28 @@ From zero to a running, overseen, multi-participant dialogue — first with no c
 
 ## 1. Install (Python ≥ 3.11)
 
-Run everything from the repository root; the package lives in `sdk/`.
+Run everything from the repository root; the package lives in `sdk/`. 
+Pick whichever environment manager you use — both install the same editable package.
+
+**venv + pip**
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e "./sdk[dev]"
 ```
 
-Verify:
+**conda / miniforge**
+
+```bash
+conda create -n dcp python=3.11 -y && conda activate dcp
+pip install -e "./sdk[dev]"          # dcp is a pip package; install it into the conda env with pip
+```
+
+> DCP ships on PyPI-style packaging (there is no conda-forge package yet), so inside a conda env you
+> still install it with `pip`. Everything else — the `dcp` CLI, extras like `./sdk[transformers]`,
+> the tests — works identically.
+
+Verify (either way):
 
 ```bash
 python -c "import dcp; print(dcp.__version__, dcp.PROTOCOL_VERSION)"
@@ -153,9 +167,8 @@ dcp show <instance-id> --db sqlite:///./dcp.db --timeline
 
 ## Next steps
 
-**Read next:** [02-concepts.md](02-concepts.md) — templates vs. instances, roles vs. participants, the five layers, and how the orchestrator's oversight loop drives control. 
-Then pick a task from the [docs index](README.md):
-
+**Read next:** 
+- [02-concepts.md](02-concepts.md) — templates vs. instances, roles vs. participants, the five layers, and how the orchestrator's oversight loop drives control. Then pick a task from the [docs index](README.md):
 - [03-templates.md](03-templates.md) — start from a preset template and adapt it.
 - [04-hosting.md](04-hosting.md) — multi-user hosting: registration, joining, access control,
   bearer auth, HTTP/SSE, and query→template auto-generation.
