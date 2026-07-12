@@ -5,9 +5,10 @@ A standalone protocol **and** reference Python SDK for **human–agent multi-age
 DCP is not built on MCP / A2A / ACP / ANP — it is derived ground-up from its own design. 
 The behavioral contract is [`SPEC.md`](SPEC.md); the Pydantic models in `dcp.schema` are the authoritative machine-readable definition.
 
-> **Status:** `0.2.0.dev0` — Phase 4 complete (full SDK: schema · DB-backed event log · participation ·
-> model providers · orchestration with real oversight · registry/hosting · HTTP+SSE · facade · conformance).
-> Docs & release hardening in progress. The API is pre-1.0 and may change.
+> **Status:** `0.2.0.dev0` — full SDK (schema · DB-backed event log · participation · model providers ·
+> orchestration with real oversight · registry/hosting · HTTP+SSE) **plus a component ecosystem**:
+> package and share orchestrators, oversight, agents, and templates — run them locally or **connect to
+> them remotely**. Pre-1.0; the API may change, and a license is not yet chosen (see below).
 
 ---
 
@@ -17,16 +18,18 @@ The behavioral contract is [`SPEC.md`](SPEC.md); the Pydantic models in `dcp.sch
 - **The orchestrator has real oversight.** Every turn is verified *before* (speaker readiness) and *after* (output quality); failing checks trigger recovery (inject context, ask a human, wait on a gate, pick an alternative) or routing (revise, verify, escalate, stop) — not just logging.
 - **The event log is the source of truth.** An instance's state is a deterministic replay of its append-only `messages + events`, so any dialogue is auditable, resumable, and joinable mid-flight.
 - **Server-hosted & multi-user.** Templates and participants are registered; instances are addressable, access-controlled (owner + `own`/`speak`/`observe` tiers + visibility), and joinable.
-- **Batteries included, swappable at every edge.** Model providers (OpenAI / Anthropic / mock), the store (SQLite / Postgres), and delivery (HTTP + SSE) all sit behind interfaces.
+- **A component ecosystem.** Orchestrators, oversight policies, agents, and templates are *shareable components* — describe one with a manifest and deliver it as local code, code + an open-weights checkpoint, or a **remote service** others connect to (with digest-verified artifacts and owner-controlled context projection).
+- **Batteries included, swappable at every edge.** Model providers (OpenAI / Anthropic / **open-weights, in-process or served** / mock), the store (SQLite / Postgres), and delivery (HTTP + SSE) all sit behind interfaces.
 
 ## Install
 
+The package lives in `sdk/`; run from the repository root (Python ≥ 3.11):
+
 ```bash
-pip install -e ".[dev]"      # from sdk/ ; requires Python ≥ 3.11
+pip install -e "./sdk[dev]"
 ```
 
-Runtime deps: `pydantic>=2`, `openai`, `anthropic`, `sqlalchemy>=2`, `starlette`, `uvicorn`,
-`sse-starlette`. Postgres: `pip install -e ".[postgres]"`.
+Runtime deps: `pydantic>=2`, `openai`, `anthropic`, `sqlalchemy>=2`, `starlette`, `uvicorn`, `sse-starlette`. Postgres: `pip install -e "./sdk[postgres]"`.
 
 ## 60-second hello-world (no API key)
 
@@ -82,39 +85,76 @@ async def main():
 asyncio.run(main())
 ```
 
-Runnable copies live in [`docs/examples/`](docs/examples/): `hello_dialogue_mock.py` (above, key-free)
-and `hello_dialogue.py` (same dialogue driven by a real model via `.env`).
+Runnable copies live in [`docs/examples/`](docs/examples/): `hello_dialogue_mock.py` (above, key-free) and `hello_dialogue.py` (same dialogue driven by a real model via `.env`).
 
 ## Docs
 
+**Start at [docs/README.md](docs/README.md)** — a guided learning path (quickstart → concepts → build-by-task → reference). At a glance:
+
 | Doc | What |
 |-----|------|
-| [docs/quickstart.md](docs/quickstart.md) | install → mock hello-world → real model → HTTP server |
-| [docs/concepts.md](docs/concepts.md) | the entity model, five layers, lifecycle, oversight/control loop |
-| [docs/guide-hosting.md](docs/guide-hosting.md) | `Server`, `Registry`, auth, HTTP+SSE, discovery, auto-generation |
-| [docs/api-reference.md](docs/api-reference.md) | the curated public surface |
-| [SPEC.md](SPEC.md) | the normative specification |
+| [docs/01-quickstart.md](docs/01-quickstart.md) | install → mock hello-world → real model → HTTP server → CLI |
+| [docs/02-concepts.md](docs/02-concepts.md) | the entity model, five layers, lifecycle, oversight/control loop |
+| [docs/03-templates.md](docs/03-templates.md) · [04-hosting.md](docs/04-hosting.md) · [05-extending.md](docs/05-extending.md) · [06-evaluation.md](docs/06-evaluation.md) | build-by-task: adapt templates · host multi-user · custom orchestrator/oversight/agent · benchmark |
+| [docs/07-sharing.md](docs/07-sharing.md) · [08-components.md](docs/08-components.md) | distribute your work — quick plugins, or portable **local & remote** components |
+| [docs/09-research-companion.md](docs/09-research-companion.md) | flagship: a Student Research Companion MAS, end-to-end |
+| [docs/10-api-reference.md](docs/10-api-reference.md) · [SPEC.md](SPEC.md) · [bindings/](bindings/) | the public API · the normative spec · the remote wire protocol |
+
+## CLI
+
+Installing the package provides a `dcp` command:
+
+```bash
+dcp info                       # version, configured providers, capabilities, installed plugins
+dcp presets                    # built-in dialogue templates
+dcp plugins                    # installed third-party components (entry points)
+dcp serve --db sqlite:///./dcp.db --port 8000   # run the HTTP + SSE server
+dcp show <instance_id> --timeline               # transcript + control decisions + oversight verdicts
+
+# components (see docs/08-components.md):
+dcp inspect <ref>              # resolve a component; print its side-effect-free plan
+dcp install <ref> --yes        # provision it into this environment (pip + artifacts)
+dcp connect <ref> --token T    # verify a remote component endpoint and print its descriptor
+```
 
 ## Development
 
 ```bash
-./scripts/check          # ruff + mypy --strict + pytest (the single CI gate)
+cd sdk
+./scripts/check                # ruff + mypy --strict + pytest (the single CI gate)
 python scripts/gen_schema.py   # regenerate JSON Schemas from the Pydantic source of truth
 ```
 
 ## Configuration
 
-Copy `.env.example` → `.env`. Environment variables (names are stable):
+Copy `sdk/.env.example` → `sdk/.env`. Environment variables (names are stable):
 
 | Var | Meaning | Default |
 |-----|---------|---------|
-| `DCP_MODEL_PROVIDER` | `openai` \| `anthropic` \| `mock` | `openai` |
+| `DCP_MODEL_PROVIDER` | `openai` \| `anthropic` \| `local` \| `transformers` \| `mock` | `openai` |
 | `DCP_MODEL` | model id for the orchestrator / global default | — |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | provider credentials (resolved by provider, never stored in a binding) | — |
+| `DCP_BASE_URL` | OpenAI-compatible endpoint for the `local` provider (vLLM / Ollama / LM Studio) | — |
 | `DCP_DATABASE_URL` | SQLAlchemy URL | `sqlite:///./dcp.db` |
 
-Each agent participant may carry its own `model_binding` independent of the orchestrator's default,
-so one dialogue may mix providers/models.
+**Open-source models, two ways:**
+- **Served** — `DCP_MODEL_PROVIDER=local` + `DCP_BASE_URL` pointing at an OpenAI-compatible server (e.g. `http://localhost:11434/v1` for Ollama). Works with the core install.
+- **In-process** — `DCP_MODEL_PROVIDER=transformers` + `DCP_MODEL=Qwen/Qwen3-4B` runs an open-weights model (Qwen3 by default) directly via HuggingFace `transformers`, no server. Install the extra: `pip install -e "./sdk[transformers]"`.
+
+Each agent participant may carry its own `model_binding` independent of the orchestrator's default, so one dialogue may mix providers/models.
+
+## Deployment
+
+For local/dev, `SqlStore` auto-creates its tables (SQLite). For a **production** deployment (Postgres), manage the schema with **Alembic migrations** instead:
+
+```bash
+pip install -e "./sdk[postgres,migrations]"
+export DCP_DATABASE_URL=postgresql+psycopg://user:pass@host:5432/dcp
+cd sdk && alembic upgrade head          # create/evolve the schema
+```
+
+Then construct the store with `SqlStore(url, create_tables=False)` so it uses the migrated schema. 
+CI runs the full gate on SQLite and a separate job against a real Postgres (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 ## License
 

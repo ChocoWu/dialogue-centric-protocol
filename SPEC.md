@@ -187,6 +187,7 @@ Figure: `figures/orchestrator_oversight_loop.svg`.
 | `request_revision` | `{message_id, reason, issues[]}` | Send a contribution back for revision. |
 | `request_verification` | `{message_id, verifier_role_id?, reason}` | Route a contribution to a verifier. |
 | `resolve_gate` | `{gate_id, decision}` | Close an open human gate. |
+| `suspend` | `{reason}` | Pause **without** terminating — leaves the instance non-terminal for later resume (§2.9). |
 | `stop` | `{status, reason}` | Terminate the instance (§2.10). |
 
 **Pre-action Oversight (speaker-readiness verification).** Before `select_speaker`, verify the
@@ -247,7 +248,7 @@ participation signals, delivery updates). Fields (§4.10): `event_id`, `instance
 - **`type` taxonomy** 〔derived — extensible via §1.10; resolves TBD-9〕, grouped:
   - *Registry:* `template_registered`, `participant_registered`, `template_deprecated`.
   - *Instance lifecycle:* `instance_created`, `instance_started`, `turn_assigned`,
-    `contribution_recorded`, `instance_terminated`.
+    `contribution_recorded`, `instance_suspended`, `instance_terminated`.
   - *Participation:* `roles_cast`, `participant_joined`, `participant_left`, `tier_changed`,
     `human_input_pending`, `human_input_addressed`, `gate_opened`, `gate_resolved`.
   - *Oversight:* `pre_action_verified`, `post_action_verified`, `revision_requested`,
@@ -336,12 +337,20 @@ Each turn the orchestrator emits one control action (§1.7), preceded by pre-act
 
 - **`orchestration.mode`** 〔resolves TBD-12〕 ∈ `{plan, flow}`:
   - `plan` — the orchestrator selects the next speaker freely (emergent).
-  - `flow` — the orchestrator follows the template's declared `flow` graph (deterministic).
+  - `flow` — the orchestrator's succession is **guided** by the template's declared `flow` graph.
 
-- **`flow`** 〔resolves TBD-11, TBD-26〕 is **advisory** under `mode:plan` (a bias/hint the
-  orchestrator MAY follow) and **binding** under `mode:flow`. `flow = {entry, edges[]}`; an
-  `edge = {from_role, to_role, condition?}` expresses suggested/required succession. This is the
-  usability lever: deterministic flows vs. emergent orchestration.
+- **`flow`** 〔resolves TBD-11, TBD-26〕 is the **initial/default succession**, and MAY be
+  **non-linear** (branches, loops). `flow = {entry, edges[]}`; an
+  `edge = {from_role, to_role, condition?}` declares an allowed transition. Its strength depends on
+  mode:
+  - Under **`mode:plan`** it is **advisory** — a hint the orchestrator MAY follow or deviate from.
+  - Under **`mode:flow`** it is **guiding** — succession is **constrained** to the outgoing edges of
+    the last speaker: exactly one edge ⇒ deterministic; several ⇒ the orchestrator chooses among
+    **only those allowed roles** (`condition` is free-text guidance, not machine-evaluated); none ⇒
+    the flow ends.
+  - In **either** mode the **oversight loop may adapt** the realized path — e.g. pre-action
+    verification finding a candidate unavailable triggers recovery that switches to an alternative
+    (§1.7). So `flow` seeds the structure; it is not a rigid script.
 
 ### 2.7 Participant Contribution
 The selected participant contributes; the finalized contribution becomes a **Message** and the act
@@ -384,6 +393,10 @@ an optimization but the log remains authoritative.
   `instance_started`, initial `roles_cast`/`participant_joined`) — those already exist in the log.
   An instance is **resumable** iff its `status` is non-terminal (`created`/`running`/`awaiting`);
   terminal instances (`done`/`provisional`/`stopped`/`budget`/`error`) are read-only via `restore`.
+- **Suspend** (§1.7 `suspend`) is how a run pauses on purpose: the orchestrator stops appending and
+  emits `instance_suspended` **without** a terminal event, leaving the instance non-terminal. A later
+  `run()` (this or another orchestrator) resumes it by the rule above. This makes long-running,
+  cross-session dialogues (e.g. awaiting a human who returns tomorrow) first-class.
 
 ### 2.10 Termination
 Terminal statuses, each with a `reason` (§4.11 `TerminationRecord`):

@@ -544,7 +544,7 @@ streaming is a valid choice, not a requirement.
 - **Normative specification:** [`SPEC.md`](SPEC.md) — field tables, RFC-2119 requirements,
   conformance criteria (v0.2.0-draft).
 - **Reference SDK:** [`sdk/`](sdk/) — a Python package (`dcp`) implementing all five layers, with a
-  key-free hello-world and a conformance suite. See [`sdk/README.md`](sdk/README.md) and
-  [`sdk/docs/`](sdk/docs/).
+  key-free hello-world and a conformance suite. See the [`README.md`](README.md) and the guides in
+  [`docs/`](docs/).
 - **Method references:** [`research/`](research/) and [`methodology/`](methodology/) — how mature
   protocols are authored/shipped (method only; no design borrowed).
