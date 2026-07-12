@@ -39,7 +39,7 @@ def _msg(role: str, turn: int) -> s.Message:
 
 
 def _ctx(template: s.DialogueTemplate, provider: object, *messages: s.Message,
-         rejected: tuple[str, ...] = ()) -> DialogueContext:
+         rejected: tuple[str, ...] = (), brief: dict[str, object] | None = None) -> DialogueContext:
     events = [
         s.Event(event_id=f"pav{i}", instance_id="dlg", type=s.EventType.PRE_ACTION_VERIFIED,
                 payload={"role_id": r, "recommended_action": "choose_alternative"}, created_at=_TS)
@@ -47,7 +47,7 @@ def _ctx(template: s.DialogueTemplate, provider: object, *messages: s.Message,
     ]
     inst = s.DialogueInstance(
         instance_id="dlg", template_ref=s.TemplateRef(template_id="t", version="1.0.0"),
-        owner="@o", visibility=s.Visibility.PRIVATE, dcp_version="0.2.0",
+        owner="@o", visibility=s.Visibility.PRIVATE, dcp_version="0.2.0", brief=brief or {},
         status=s.InstanceStatus.RUNNING, turn=len(messages), roster=[],
         messages=list(messages), events=events, open_gates=[], pending_inputs=[],
         budget=s.Budget(turns_used=len(messages)))
@@ -75,6 +75,23 @@ class _CapturingProvider:
     async def structured(self, *, instructions: str, content: str, schema: type) -> object:
         self.instructions = instructions
         return schema(action="stop", status=s.TerminationStatus.DONE)
+
+
+async def test_plan_policy_prompt_carries_goal_and_roles() -> None:
+    # Regression: a real model gets *only* the prompt. On the opening turn the transcript is empty,
+    # so the goal and the selectable role ids must be in the instructions or the model just stops.
+    cap = _CapturingProvider()
+    await PlanPolicy().decide(_ctx(_template(), cap))         # no messages yet (opening turn)
+    assert "done" in cap.instructions                        # the termination condition / goal
+    assert "- a (" in cap.instructions and "- b (" in cap.instructions  # selectable role ids
+
+
+async def test_plan_policy_prompt_carries_the_brief() -> None:
+    # The per-run task input must reach the orchestrator's model, or plan mode can't act on it.
+    cap = _CapturingProvider()
+    await PlanPolicy().decide(_ctx(_template(), cap, brief={"product": "B2B analytics"}))
+    assert "specific brief" in cap.instructions
+    assert "- product: B2B analytics" in cap.instructions
 
 
 async def test_plan_policy_passes_flow_as_an_advisory_hint() -> None:

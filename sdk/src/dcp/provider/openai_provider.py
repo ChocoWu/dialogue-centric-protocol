@@ -7,13 +7,40 @@ Client construction is lazy so importing this module needs no key/network; tests
 
 from __future__ import annotations
 
+import json
 from typing import Any, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from ..errors import ProviderError
 
 M = TypeVar("M", bound=BaseModel)
+
+#: Structured decoding is non-deterministic: a model may emit valid JSON followed by trailing prose
+#: (which the strict parser rejects wholesale) or no parsed object at all. A single such hiccup must
+#: not terminate a whole dialogue, so a structured call salvages the leading JSON object and,
+#: failing that, retries a bounded number of times.
+_STRUCTURED_ATTEMPTS = 4
+
+
+def _salvage_first_json(exc: ValidationError, schema: type[M]) -> M | None:
+    """Recover a schema instance from a parse that failed only on **trailing** characters.
+
+    Some models emit a valid JSON object then extra prose/JSON; the strict parser rejects the whole
+    string. The rejected raw text rides along on the ``ValidationError``, so decode just its leading
+    JSON value (``raw_decode`` stops at the first complete one) and validate that. Returns ``None``
+    if nothing salvageable is found — the caller then retries or fails.
+    """
+    for err in exc.errors():
+        raw = err.get("input")
+        if not isinstance(raw, str) or not raw.strip():
+            continue
+        try:
+            obj, _ = json.JSONDecoder().raw_decode(raw.strip())
+            return schema.model_validate(obj)
+        except (ValueError, ValidationError):
+            continue
+    return None
 
 
 class OpenAIProvider:
@@ -48,20 +75,27 @@ class OpenAIProvider:
             raise ProviderError(f"openai text call failed: {exc}") from exc
 
     async def structured(self, *, instructions: str, content: str, schema: type[M]) -> M:
-        try:
-            resp = await self._client.chat.completions.parse(
-                model=self.model,
-                messages=self._messages(instructions, content),
-                response_format=schema,
-            )
-            parsed = resp.choices[0].message.parsed
-            if parsed is None:
-                raise ProviderError("openai returned no parsed structured output")
-            return schema.model_validate(parsed.model_dump())
-        except ProviderError:
-            raise
-        except Exception as exc:  # noqa: BLE001
-            raise ProviderError(f"openai structured call failed: {exc}") from exc
+        messages = self._messages(instructions, content)
+        last: Exception | None = None
+        for _ in range(_STRUCTURED_ATTEMPTS):    # retry non-deterministic parse failures (bounded)
+            try:
+                resp = await self._client.chat.completions.parse(
+                    model=self.model, messages=messages, response_format=schema,
+                )
+                parsed = resp.choices[0].message.parsed
+                if parsed is None:
+                    raise ProviderError("openai returned no parsed structured output")
+                return schema.model_validate(parsed.model_dump())
+            except ValidationError as exc:       # often just trailing chars — salvage the JSON
+                salvaged = _salvage_first_json(exc, schema)
+                if salvaged is not None:
+                    return salvaged
+                last = exc
+            except Exception as exc:  # noqa: BLE001 — normalize + retry any SDK/parse error
+                last = exc
+        raise ProviderError(
+            f"openai structured call failed after {_STRUCTURED_ATTEMPTS} attempts: {last}"
+        ) from last
 
 
 __all__ = ["OpenAIProvider"]

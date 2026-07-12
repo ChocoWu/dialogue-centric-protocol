@@ -25,6 +25,7 @@ from ..schema import (
     DialogueTemplate,
     Participant,
     TemplateRef,
+    TerminationPolicy,
     Visibility,
     is_resumable,
 )
@@ -121,8 +122,22 @@ def build_app(registry: Registry) -> Starlette:
         except (ValidationError, ValueError, KeyError) as exc:
             return _error(422, f"invalid instantiate request: {exc}")
         visibility = Visibility(data["visibility"]) if data.get("visibility") else None
+        brief = data.get("brief")
+        if brief is not None and not isinstance(brief, dict):
+            return _error(422, "invalid instantiate request: 'brief' must be an object")
+        goal = data.get("goal")
+        if goal is not None and not isinstance(goal, str):
+            return _error(422, "invalid instantiate request: 'goal' must be a string")
         try:
-            inst = registry.instantiate(ref, owner=owner, visibility=visibility)
+            termination = (
+                TerminationPolicy.model_validate(data["termination_policy"])
+                if data.get("termination_policy") is not None else None)
+        except (ValidationError, ValueError) as exc:
+            return _error(422, f"invalid instantiate request: 'termination_policy' {exc}")
+        try:
+            inst = registry.instantiate(
+                ref, owner=owner, visibility=visibility, goal=goal, brief=brief,
+                termination=termination)
         except RegistryError as exc:                     # unknown template
             return _error(404, str(exc))
         return JSONResponse(_instance_view(inst), status_code=201)

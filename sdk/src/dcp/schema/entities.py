@@ -114,6 +114,19 @@ class DialogueInstance(DCPModel):
     owner: NonEmptyStr                          # participant_id (D5)
     visibility: Visibility = Visibility.PRIVATE
     dcp_version: SemVer
+    #: The concrete objective of *this* run. The template's ``goal`` is the reusable pattern
+    #: purpose (generic across runs); an instance may override it with the specific aim ("name
+    #: this product") — the effective goal is ``instance.goal or template.goal``. Set at create.
+    goal: str = ""
+    #: The concrete, per-run task input — what *this* occurrence is about (vs. the template, which
+    #: says what this *kind* of dialogue is). Owner-supplied at instantiate; a free-form structured
+    #: mapping surfaced to the orchestrator and every agent. Immutable for the instance's life.
+    brief: Metadata = Field(default_factory=dict)
+    #: Per-run termination override. The template's ``termination_policy`` is the reusable default
+    #: (the pattern's completion semantics + caps); a run may override it wholesale with this run's
+    #: condition and resource caps. The effective policy is ``instance.termination_policy or
+    #: template.termination_policy``. Owner-supplied at instantiate; recorded so it replays.
+    termination_policy: TerminationPolicy | None = None
     status: InstanceStatus = InstanceStatus.CREATED
     turn: int = 0
     roster: list[RosterEntry] = Field(default_factory=list)

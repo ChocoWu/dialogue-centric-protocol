@@ -17,16 +17,23 @@ The behavioral contract is [`SPEC.md`](SPEC.md); the Pydantic models in `dcp.sch
 - **Humans are first-class participants**, not an afterthought — required inputs, optional enrichment, approval gates, and open-mic, each with timeout policies.
 - **The orchestrator has real oversight.** Every turn is verified *before* (speaker readiness) and *after* (output quality); failing checks trigger recovery (inject context, ask a human, wait on a gate, pick an alternative) or routing (revise, verify, escalate, stop) — not just logging.
 - **The event log is the source of truth.** An instance's state is a deterministic replay of its append-only `messages + events`, so any dialogue is auditable, resumable, and joinable mid-flight.
+- **Reusable templates, per-run inputs.** A template is the *pattern* (roles, flow, generic goal/termination); each run aims it at a task by supplying its own `goal`, `termination` policy, and structured `brief` at instantiation — so one "design review" template serves naming, API review, or architecture review, each replayable.
 - **Server-hosted & multi-user.** Templates and participants are registered; instances are addressable, access-controlled (owner + `own`/`speak`/`observe` tiers + visibility), and joinable.
 - **A component ecosystem.** Orchestrators, oversight policies, agents, and templates are *shareable components* — describe one with a manifest and deliver it as local code, code + an open-weights checkpoint, or a **remote service** others connect to (with digest-verified artifacts and owner-controlled context projection).
 - **Batteries included, swappable at every edge.** Model providers (OpenAI / Anthropic / **open-weights, in-process or served** / mock), the store (SQLite / Postgres), and delivery (HTTP + SSE) all sit behind interfaces.
 
 ## Install
 
-The package lives in `sdk/`; run from the repository root (Python ≥ 3.11):
+The package lives in `sdk/`; run from the repository root (Python ≥ 3.11). Use whichever environment manager you prefer — both install the same editable package:
 
 ```bash
+# venv + pip
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e "./sdk[dev]"
+
+# — or — conda / miniforge
+conda create -n dcp python=3.11 -y && conda activate dcp
+pip install -e "./sdk[dev]"        # DCP has no conda-forge package yet; install it with pip
 ```
 
 Runtime deps: `pydantic>=2`, `openai`, `anthropic`, `sqlalchemy>=2`, `starlette`, `uvicorn`, `sse-starlette`. Postgres: `pip install -e "./sdk[postgres]"`.
@@ -39,10 +46,11 @@ from dcp import Server, schema as s
 from dcp.orchestration import HumanReply, ScriptedHumanGateway
 from dcp.provider import MockProvider
 
+# The template is the reusable *pattern* — generic title/goal/termination, not one task.
 TEMPLATE = s.DialogueTemplate(
-    template_id="design-review", version="1.0.0", title="Product-name design review",
-    goal="Agree on a product name the founder approves.",
-    termination_policy=s.TerminationPolicy(condition="founder approves", max_turns=6),
+    template_id="design-review", version="1.0.0", title="Design review",
+    goal="Converge on a proposal the designated approver signs off on.",
+    termination_policy=s.TerminationPolicy(condition="the approver approves", max_turns=8),
     roles=[
         s.Role(role_id="proposer", name="Proposer", kind=s.RoleKind.AGENT,
                response_requirement=s.ResponseRequirement.REQUIRED),
@@ -59,8 +67,13 @@ async def main():
     for pid, kind in (("proposer", s.RoleKind.AGENT), ("critic", s.RoleKind.AGENT),
                       ("founder", s.RoleKind.HUMAN)):
         server.register_participant(s.Participant(participant_id=pid, kind=kind, display_name=pid))
+    # This run aims the generic template at a task: goal + termination override the template's,
+    # and brief carries the specifics — all reach the orchestrator and every agent.
     server.instantiate(s.TemplateRef(template_id="design-review", version="1.0.0"),
-                       owner="founder", instance_id="demo")
+                       owner="founder", instance_id="demo",
+                       goal="Agree on a product name the founder approves.",
+                       termination=s.TerminationPolicy(condition="the founder approves", max_turns=6),
+                       brief={"product": "a developer-tools startup", "constraints": ["one word"]})
 
     result = await server.run(
         "demo",

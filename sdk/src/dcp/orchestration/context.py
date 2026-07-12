@@ -10,6 +10,7 @@ disposes").
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from ..provider import ModelProvider
@@ -22,12 +23,38 @@ from ..schema import (
     Gate,
     InstanceStatus,
     Message,
+    Metadata,
     OrchestrationMode,
     PendingInput,
     RecommendedAction,
     Role,
     RosterEntry,
+    TerminationPolicy,
 )
+
+
+def effective_termination(
+    instance: DialogueInstance, template: DialogueTemplate
+) -> TerminationPolicy:
+    """The termination policy in force for a run: the instance's per-run override, else the
+    template's reusable default. Mirrors the ``instance.goal or template.goal`` rule."""
+    return instance.termination_policy or template.termination_policy
+
+
+def render_brief(brief: Mapping[str, object]) -> str:
+    """Render an instance brief (the per-run task input) as prompt text — ``key: value`` per line.
+
+    Shared by the control policy and the agent turn so both see the same concrete task; returns
+    ``""`` for an empty brief so callers can cheaply skip it.
+    """
+    lines = []
+    for key, value in brief.items():
+        if isinstance(value, list | tuple):
+            rendered = ", ".join(str(v) for v in value)
+        else:
+            rendered = str(value)
+        lines.append(f"- {key}: {rendered}")
+    return "\n".join(lines)
 
 
 @dataclass(frozen=True)
@@ -41,6 +68,7 @@ class DialogueContext:
     instance_id: str
     goal: str
     topic: str
+    brief: Metadata
     termination_condition: str
     max_turns: int | None
     roles: tuple[Role, ...]                      # the template's roles (the possible speakers)
@@ -68,12 +96,14 @@ class DialogueContext:
     ) -> DialogueContext:
         """Build a context from a (replayed) instance + its template + the orchestrator provider."""
         last_speaker = instance.messages[-1].role_id if instance.messages else None
+        termination = effective_termination(instance, template)   # per-run override or template
         return cls(
             instance_id=instance.instance_id,
-            goal=template.goal,
+            goal=instance.goal or template.goal,     # per-run objective overrides the template's
             topic=template.topic,
-            termination_condition=template.termination_policy.condition,
-            max_turns=template.termination_policy.max_turns,
+            brief=dict(instance.brief),
+            termination_condition=termination.condition,
+            max_turns=termination.max_turns,
             roles=tuple(template.roles),
             orchestration_mode=template.orchestration.mode,
             flow=template.flow,
@@ -112,6 +142,10 @@ class DialogueContext:
         """The serialized transcript, one ``role_id: content`` line per message."""
         return "\n".join(f"{m.role_id}: {m.content}" for m in self.messages)
 
+    def brief_text(self) -> str:
+        """The instance brief rendered for a prompt (``""`` when no brief was supplied)."""
+        return render_brief(self.brief)
+
     def role(self, role_id: str) -> Role | None:
         """The template Role with ``role_id``, or ``None``."""
         return next((r for r in self.roles if r.role_id == role_id), None)
@@ -125,4 +159,4 @@ class DialogueContext:
         return self.max_turns is not None and self.turn >= self.max_turns
 
 
-__all__ = ["DialogueContext"]
+__all__ = ["DialogueContext", "render_brief", "effective_termination"]

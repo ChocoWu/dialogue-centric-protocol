@@ -36,6 +36,46 @@ def test_instantiate_sets_owner_and_created_status() -> None:
     assert own.tier is s.AccessTier.OWN
 
 
+def test_instantiate_records_brief_and_it_replays() -> None:
+    # The per-run task input is owner-supplied at instantiate and must survive replay (D3).
+    reg = _reg()
+    brief = {"product": "B2B analytics", "constraints": ["avoid -ly"]}
+    inst = reg.instantiate(_ref(), owner="@owner", instance_id="dlg", brief=brief)
+    assert inst.brief == brief
+    assert reg.restore("dlg").brief == brief          # round-trips through the log
+
+
+def test_instantiate_brief_defaults_to_empty() -> None:
+    reg = _reg()
+    inst = reg.instantiate(_ref(), owner="@owner", instance_id="dlg")
+    assert inst.brief == {}
+
+
+def test_instantiate_records_goal_override_and_it_replays() -> None:
+    reg = _reg()
+    inst = reg.instantiate(_ref(), owner="@owner", instance_id="dlg", goal="Name this product")
+    assert inst.goal == "Name this product"
+    assert reg.restore("dlg").goal == "Name this product"   # round-trips through the log
+
+
+def test_instantiate_goal_defaults_to_empty() -> None:
+    reg = _reg()
+    assert reg.instantiate(_ref(), owner="@owner", instance_id="dlg").goal == ""
+
+
+def test_instantiate_records_termination_override_and_it_replays() -> None:
+    reg = _reg()
+    override = s.TerminationPolicy(condition="founder approves", max_turns=12, token_budget=5000)
+    inst = reg.instantiate(_ref(), owner="@owner", instance_id="dlg", termination=override)
+    assert inst.termination_policy == override
+    assert reg.restore("dlg").termination_policy == override   # round-trips through the log
+
+
+def test_instantiate_termination_defaults_to_none() -> None:
+    reg = _reg()
+    assert reg.instantiate(_ref(), owner="@owner", instance_id="dlg").termination_policy is None
+
+
 def test_instantiate_default_visibility_is_private() -> None:
     reg = _reg()  # template has no default_visibility
     inst = reg.instantiate(_ref(), owner="@owner", instance_id="dlg")

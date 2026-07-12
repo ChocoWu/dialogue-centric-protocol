@@ -81,6 +81,38 @@ def test_role_lookup_and_filled_roles() -> None:
     assert ctx.filled_role_ids() == {"proposer"}           # only cast role on the roster
 
 
+def test_brief_is_carried_and_rendered() -> None:
+    inst = _instance().model_copy(update={
+        "brief": {"product": "B2B analytics", "constraints": ["avoid -ly", "one word"]}})
+    ctx = DialogueContext.from_instance(inst, _template(), MockProvider())
+    assert ctx.brief == {"product": "B2B analytics", "constraints": ["avoid -ly", "one word"]}
+    text = ctx.brief_text()
+    assert "- product: B2B analytics" in text
+    assert "- constraints: avoid -ly, one word" in text    # list flattened for the prompt
+
+
+def test_brief_text_is_empty_without_a_brief() -> None:
+    assert _ctx().brief_text() == ""
+
+
+def test_instance_goal_overrides_template_goal() -> None:
+    # The effective goal is the per-run objective when set, else the template's generic goal.
+    assert _ctx().goal == "Reach consensus"                 # no instance goal → template goal
+    inst = _instance().model_copy(update={"goal": "Name this product"})
+    ctx = DialogueContext.from_instance(inst, _template(), MockProvider())
+    assert ctx.goal == "Name this product"                  # instance goal wins
+
+
+def test_instance_termination_overrides_template() -> None:
+    # Effective termination (condition + caps) is the per-run override when set, else template.
+    assert _ctx().termination_condition == "agreed" and _ctx().max_turns == 6   # template default
+    override = s.TerminationPolicy(condition="founder approves", max_turns=12)
+    inst = _instance().model_copy(update={"termination_policy": override})
+    ctx = DialogueContext.from_instance(inst, _template(), MockProvider())
+    assert ctx.termination_condition == "founder approves"  # instance override wins
+    assert ctx.max_turns == 12
+
+
 def test_over_turn_cap_reflects_max_turns() -> None:
     # instance turn == len(messages); build 6 messages against a max_turns=6 template
     msgs = tuple(_msg(f"m{i}", "proposer", "x", i) for i in range(1, 7))

@@ -331,6 +331,47 @@
       "title": "TemplateRef",
       "type": "object"
     },
+    "TerminationPolicy": {
+      "additionalProperties": false,
+      "description": "Template termination policy (SPEC \u00a74.1).",
+      "properties": {
+        "condition": {
+          "title": "Condition",
+          "type": "string"
+        },
+        "max_turns": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Turns"
+        },
+        "token_budget": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Token Budget"
+        }
+      },
+      "required": [
+        "condition"
+      ],
+      "title": "TerminationPolicy",
+      "type": "object"
+    },
     "Visibility": {
       "description": "Instance visibility (SPEC \u00a71.6; D5).",
       "enum": [
@@ -345,6 +386,11 @@
   "additionalProperties": false,
   "description": "A running occurrence created from a template, carrying all runtime state\n(SPEC \u00a71.3/\u00a74.2; D1). Authoritative state is replayable from ``messages`` + ``events`` (D3).",
   "properties": {
+    "brief": {
+      "additionalProperties": true,
+      "title": "Brief",
+      "type": "object"
+    },
     "budget": {
       "$ref": "#/$defs/Budget"
     },
@@ -359,6 +405,11 @@
       },
       "title": "Events",
       "type": "array"
+    },
+    "goal": {
+      "default": "",
+      "title": "Goal",
+      "type": "string"
     },
     "instance_id": {
       "minLength": 1,
@@ -409,6 +460,17 @@
     },
     "template_ref": {
       "$ref": "#/$defs/TemplateRef"
+    },
+    "termination_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TerminationPolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "turn": {
       "default": 0,

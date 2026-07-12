@@ -36,6 +36,46 @@ class RecordsContextProjection(Protocol):
     def drain_projection_audits(self) -> Sequence[Mapping[str, object]]: ...
 
 
+def _situation(ctx: DialogueContext) -> str:
+    """Render the dialogue's goal, roles, and progress so the model can choose a speaker.
+
+    A control policy's model gets *only* what we put in its prompt: the transcript alone is not
+    enough — on the opening turn it is empty, and without the goal and the roster of roles the model
+    has no basis to start. This block gives it the standing context every ``decide`` call needs.
+    """
+    lines = [
+        "You are the orchestrator of a multi-party dialogue. Choose the single next "
+        "control action.",
+        "",
+        f"Goal: {ctx.goal}",
+    ]
+    if ctx.topic:
+        lines.append(f"Topic: {ctx.topic}")
+    brief = ctx.brief_text()
+    if brief:
+        lines.append(f"This dialogue's specific brief:\n{brief}")
+    lines.append(f"Termination condition: {ctx.termination_condition}")
+    cap = f" of at most {ctx.max_turns}" if ctx.max_turns is not None else ""
+    lines.append(f"Progress: {ctx.turn} turn(s) taken{cap} so far.")
+    lines.append("")
+    lines.append("Roles that can speak (pick target_role_id from these ids):")
+    filled = ctx.filled_role_ids()
+    # Prefer roles with a participant cast in; fall back to all template roles if none are cast yet.
+    speakable = [r for r in ctx.roles if r.role_id in filled] or list(ctx.roles)
+    for r in speakable:
+        persona = f" — {r.persona}" if r.persona else ""
+        lines.append(f"- {r.role_id} ({r.name}){persona}")
+    lines.append("")
+    lines.append(
+        "select_speaker (with target_role_id) to have that role contribute next; stop (with a "
+        "terminal status) once the termination condition is met. The transcript below is the "
+        "conversation so far — if it is empty the dialogue is just beginning, so open it by "
+        "selecting the role best suited to start. Do not stop before anyone has spoken unless the "
+        "goal is already satisfied."
+    )
+    return "\n".join(lines)
+
+
 def _flow_hint(ctx: DialogueContext) -> str:
     """Render the template ``flow`` as an **advisory** hint for plan mode (SPEC §2.6).
 
@@ -67,16 +107,17 @@ class PlanPolicy:
     """
 
     async def decide(self, ctx: DialogueContext) -> OrchestratorAction:
-        instructions = "Choose the next role to speak, or stop the dialogue."
+        instructions = _situation(ctx)
         hint = _flow_hint(ctx)
         if hint:
             instructions = f"{instructions}\n\n{hint}"
         if ctx.rejected_this_turn:                       # steer around unavailable candidates
             avoid = ", ".join(sorted(ctx.rejected_this_turn))
             instructions = f"{instructions}\n\nDo NOT select these roles (not ready now): {avoid}."
+        transcript = ctx.transcript() or "(no messages yet — the dialogue is just beginning)"
         return await ctx.provider.structured(
             instructions=instructions,
-            content=ctx.transcript(),
+            content=transcript,
             schema=OrchestratorAction,
         )
 

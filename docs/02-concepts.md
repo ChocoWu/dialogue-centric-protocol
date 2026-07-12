@@ -16,14 +16,20 @@ Everything that happens is recorded as an append-only log; the dialogue's state 
 | Entity | What it is | Lifetime |
 |--------|-----------|----------|
 | **DialogueTemplate** (§1.2) | A reusable, registerable dialogue definition: roles, termination policy, orchestration mode, flow, human-policy defaults. Immutable per `(template_id, version)`. | Registered once, reused |
-| **DialogueInstance** (§1.3) | A running occurrence created from a template. Carries all runtime state — `status`, `turn`, `roster`, `messages`, `events`, `open_gates`, `pending_inputs`, `budget`. | Per run |
+| **DialogueInstance** (§1.3) | A running occurrence created from a template. Carries all runtime state — `goal` (per-run objective), `brief`, `termination_policy` (per-run override), `status`, `turn`, `roster`, `messages`, `events`, `open_gates`, `pending_inputs`, `budget`. | Per run |
 | **Role** (§1.4) | A dialogue-local seat: `kind` (`agent`/`human`), persona, and `response_requirement` (`required`/`optional`/`gate`). | Defined in a template |
 | **Participant** (§1.5) | A server-registered identity (agent or human) with a profile, a `discoverable` flag, and — for agents — an optional `model_binding`. | Registered on the server |
 | **Orchestrator** (§1.7) | Drives + oversees one instance. Holds no state that isn't in the log, so it can attach to / resume any instance. | Per run |
 | **Message** (§1.8) | A finalized contribution to the transcript. Append-only, immutable. | — |
 | **Event** (§1.9) | A record that *something happened* (a control decision, a state transition, a participation signal). | — |
 
-**Template vs Instance** is the key split (decision D1): you author and register a *template*, then create many *instances* from it. 
+**Template vs Instance** is the key split (decision D1): you author and register a *template*, then create many *instances* from it. The template describes the *reusable pattern* — its `title`/`goal`/`termination_policy` name the mechanism ("a design review: converge on a proposal an approver accepts") and sensible defaults, **not** one task. Each instance says what *this run* is about via per-run inputs you pass at `instantiate(...)`:
+
+- **`goal`** — this run's concrete objective, which *overrides* the template's generic goal. Effective goal = `instance.goal or template.goal`.
+- **`termination`** — this run's termination policy (completion condition + `max_turns` + `token_budget`), which *overrides* the template's. Effective policy = `instance.termination_policy or template.termination_policy`.
+- **`brief`** — the free-form structured task input (product, audience, constraints, …).
+
+All are recorded in the log so they replay, and all are surfaced to the orchestrator and every agent so they act on *this* task. So one "design review" template serves any review — `goal="agree on a product name"` + a 6-turn cap + a product brief for one run, `goal="approve the API surface"` + a 20-turn cap + an API brief for the next.  
 **Role vs Participant** is the other: a role is a seat in the script; a participant is a real registered identity **cast into** a role for one instance.
 
 ## The five layers (§3)

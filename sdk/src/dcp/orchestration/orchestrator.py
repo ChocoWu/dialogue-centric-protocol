@@ -34,7 +34,7 @@ from ..schema import (
 )
 from ..state import Store, restore
 from .actions import OrchestratorAction
-from .context import DialogueContext
+from .context import DialogueContext, effective_termination, render_brief
 from .human import HumanGateway
 from .oversight import DefaultOversight, OversightPolicy
 from .policy import ControlPolicy, FlowPolicy, PlanPolicy, RecordsContextProjection
@@ -80,6 +80,8 @@ class Orchestrator:
         self._msg_seq = itertools.count()                # unique message ids (survive revisions)
         self._aux_seq = itertools.count()                # unique ids for pending-input/gate aux
         self._messages: list[Message] = []
+        self._goal = ""                                   # per-run objective override (from log)
+        self._brief: Metadata = {}                        # the per-run task input (from the log)
         self._turn = 0
         self._steps = 0                                  # control steps (guards recovery loops)
         self._last_speaker: str | None = None
@@ -166,6 +168,21 @@ class Orchestrator:
             for audit in policy.drain_projection_audits():
                 self._emit(EventType.CONTEXT_PROJECTED, **dict(audit))
 
+    def _agent_instructions(self, role: Role) -> str:
+        """Build an agent's instructions: its persona, the dialogue goal, and the per-run brief.
+
+        The persona alone says *how* a role behaves; the goal and brief say *what this dialogue is
+        about* — without them an agent speaking into an empty transcript has nothing to work from.
+        """
+        parts = [role.persona or role.name]
+        effective_goal = self._goal or self.template.goal   # per-run objective overrides template
+        if effective_goal:
+            parts.append(f"Dialogue goal: {effective_goal}")
+        brief = render_brief(self._brief)
+        if brief:
+            parts.append(f"Brief (the specific task for this dialogue):\n{brief}")
+        return "\n\n".join(parts)
+
     # --- contribution ----------------------------------------------------------------
     async def _contribute(self, role: Role) -> tuple[TerminationStatus, str] | None:
         """Perform ``role``'s turn. Returns a terminal signal (e.g. gate timeout) or ``None``."""
@@ -173,7 +190,7 @@ class Orchestrator:
         if role.kind is RoleKind.AGENT:
             provider = self._provider_for(participant)
             content = await provider.text(
-                instructions=role.persona or role.name, content=self._transcript()
+                instructions=self._agent_instructions(role), content=self._transcript()
             )
             self._record_message(role, participant.participant_id, content)
             return None
@@ -217,6 +234,10 @@ class Orchestrator:
         """Seed in-memory run state from a restored instance so ``run`` can resume (D3)."""
         self._turn = inst.turn
         self._messages = list(inst.messages)
+        self._goal = inst.goal
+        self._brief = dict(inst.brief)
+        # A per-run termination override (if any) supersedes the template's cap for this instance.
+        self._max_turns = effective_termination(inst, self.template).max_turns
         self._last_speaker = inst.messages[-1].role_id if inst.messages else None
         self._events = itertools.count(len(inst.events))   # continue event ids past the log
         self._msg_seq = itertools.count(len(inst.messages))

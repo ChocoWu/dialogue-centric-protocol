@@ -23,9 +23,12 @@ from dcp.orchestration import HumanReply, ScriptedHumanGateway
 TEMPLATE = s.DialogueTemplate(
     template_id="design-review",
     version="1.0.0",
-    title="Product-name design review",
-    goal="Agree on a product name the founder approves.",
-    termination_policy=s.TerminationPolicy(condition="founder approves", max_turns=6),
+    # Template = the reusable *pattern*: a generic title, goal, and termination that fit any design
+    # review, not one task. The run-specific objective and termination are supplied per-instance
+    # (see `goal=` / `termination=` in instantiate).
+    title="Design review",
+    goal="Converge on a proposal the designated approver signs off on.",
+    termination_policy=s.TerminationPolicy(condition="the approver approves", max_turns=8),
     roles=[
         s.Role(role_id="proposer", name="Proposer", kind=s.RoleKind.AGENT,
                persona="You propose candidate product names, one at a time, each with a rationale.",
@@ -61,6 +64,18 @@ async def main() -> None:
     server.instantiate(
         s.TemplateRef(template_id="design-review", version="1.0.0"),
         owner="founder", instance_id="demo",
+        # The generic "design-review" template, aimed at *this* run: `goal` is the concrete objective
+        # (overrides the template's generic goal), `termination` sets this run's completion condition
+        # and caps (overrides the template's), and `brief` carries the task specifics. All reach the
+        # orchestrator and every agent — so the proposer names *this* product, not one invented from
+        # thin air. Re-run the same template with a different goal/termination/brief for any review.
+        goal="Agree on a product name the founder approves.",
+        termination=s.TerminationPolicy(condition="the founder approves the name", max_turns=6),
+        brief={
+            "product": "a B2B analytics platform for fintech CFOs",
+            "audience": "finance leaders at mid-market fintechs",
+            "constraints": ["one or two words", "avoid the '-ly' suffix", "low trademark risk"],
+        },
     )
 
     result = await server.run(

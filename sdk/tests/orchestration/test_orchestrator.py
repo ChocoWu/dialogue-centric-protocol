@@ -79,6 +79,86 @@ async def test_flow_mode_follows_graph() -> None:
     assert [m.role_id for m in inst.messages] == ["a", "b"]
 
 
+class _CapturingAgent:
+    """An agent provider that records the instructions it is given."""
+
+    def __init__(self) -> None:
+        self.instructions = ""
+
+    async def text(self, *, instructions: str, content: str) -> str:
+        self.instructions = instructions
+        return "named it"
+
+    async def structured(self, *, instructions: str, content: str, schema: type) -> object:
+        raise AssertionError("agent should not be asked for a structured decision")
+
+
+async def test_agent_instructions_carry_goal_and_brief() -> None:
+    # The per-run brief (recorded in instance-created) must reach the agent's turn instructions.
+    store = _store_with_instance()
+    store.append("dlg", s.Event(
+        event_id="evt_created", instance_id="dlg", type=s.EventType.INSTANCE_CREATED,
+        payload={"owner": "@owner", "brief": {"product": "B2B analytics"}}, created_at=_TS))
+    tmpl = s.DialogueTemplate(
+        template_id="t", version="1.0.0", title="T", goal="Agree on a name.",
+        termination_policy=s.TerminationPolicy(condition="done"),
+        roles=[s.Role(role_id="a", name="A", kind=s.RoleKind.AGENT, persona="You name things.",
+                      response_requirement=s.ResponseRequirement.REQUIRED)])
+    agent = _CapturingAgent()
+    orch = Orchestrator(
+        store=store, template=tmpl, instance_id="dlg", cast={"a": "a"}, participants=_agent_ps("a"),
+        provider=MockProvider(structured_queue=[
+            {"action": "select_speaker", "target_role_id": "a"},
+            {"action": "stop", "status": "done"}]),
+        agent_providers={"a": agent})
+    await orch.run()
+    assert "You name things." in agent.instructions        # persona
+    assert "Dialogue goal: Agree on a name." in agent.instructions
+    assert "- product: B2B analytics" in agent.instructions  # the per-run brief
+
+
+async def test_instance_goal_override_reaches_agent_instructions() -> None:
+    # An instance-level goal overrides the template's generic goal in the agent's instructions.
+    store = _store_with_instance()
+    store.append("dlg", s.Event(
+        event_id="evt_created", instance_id="dlg", type=s.EventType.INSTANCE_CREATED,
+        payload={"owner": "@owner", "goal": "Name this product"}, created_at=_TS))
+    tmpl = s.DialogueTemplate(
+        template_id="t", version="1.0.0", title="T", goal="Generic pattern goal.",
+        termination_policy=s.TerminationPolicy(condition="done"),
+        roles=[s.Role(role_id="a", name="A", kind=s.RoleKind.AGENT,
+                      response_requirement=s.ResponseRequirement.REQUIRED)])
+    agent = _CapturingAgent()
+    orch = Orchestrator(
+        store=store, template=tmpl, instance_id="dlg", cast={"a": "a"}, participants=_agent_ps("a"),
+        provider=MockProvider(structured_queue=[
+            {"action": "select_speaker", "target_role_id": "a"},
+            {"action": "stop", "status": "done"}]),
+        agent_providers={"a": agent})
+    await orch.run()
+    assert "Dialogue goal: Name this product" in agent.instructions  # instance goal wins
+    assert "Generic pattern goal." not in agent.instructions          # template goal overridden
+
+
+async def test_instance_termination_override_caps_turns() -> None:
+    # Template has no turn cap; the per-run override caps it at 1, so the run stops after one turn.
+    store = _store_with_instance()
+    override = {"condition": "done", "max_turns": 1}
+    store.append("dlg", s.Event(
+        event_id="evt_created", instance_id="dlg", type=s.EventType.INSTANCE_CREATED,
+        payload={"owner": "@owner", "termination_policy": override}, created_at=_TS))
+    tmpl = _tmpl([_agent("a")], max_turns=None)               # template: unbounded
+    orch = Orchestrator(
+        store=store, template=tmpl, instance_id="dlg", cast={"a": "a"}, participants=_agent_ps("a"),
+        provider=MockProvider(structured_queue=[
+            {"action": "select_speaker", "target_role_id": "a"},   # one turn, then the cap trips
+            {"action": "select_speaker", "target_role_id": "a"}]),
+        agent_providers={"a": MockProvider(texts=["A", "A2"])})
+    inst = await orch.run()
+    assert inst.turn == 1                                     # capped by the instance override
+    assert inst.status is s.InstanceStatus.STOPPED           # turn cap reached (§2.10)
+
+
 async def test_serialized_transcript_one_message_per_turn() -> None:
     store = _store_with_instance()
     tmpl = _tmpl([_agent("a")])

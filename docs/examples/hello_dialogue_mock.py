@@ -19,9 +19,10 @@ from dcp.provider import MockProvider
 TEMPLATE = s.DialogueTemplate(
     template_id="design-review",
     version="1.0.0",
-    title="Product-name design review",
-    goal="Agree on a product name the founder approves.",
-    termination_policy=s.TerminationPolicy(condition="founder approves", max_turns=6),
+    # Generic, reusable pattern — the specific objective is set per-instance (see instantiate).
+    title="Design review",
+    goal="Converge on a proposal the designated approver signs off on.",
+    termination_policy=s.TerminationPolicy(condition="approver approves", max_turns=6),
     roles=[
         s.Role(role_id="proposer", name="Proposer", kind=s.RoleKind.AGENT,
                persona="Proposes candidate product names.",
@@ -48,6 +49,9 @@ async def main() -> None:
     server.instantiate(
         s.TemplateRef(template_id="design-review", version="1.0.0"),
         owner="founder", instance_id="demo",
+        # This run's concrete objective (overrides the template's generic goal) + task specifics.
+        goal="Agree on a product name the founder approves.",
+        brief={"product": "a developer-tools startup", "constraints": ["one word", "memorable"]},
     )
 
     providers = [p.provider for p in server.server_info().model_providers if p.configured]

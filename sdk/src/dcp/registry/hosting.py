@@ -25,9 +25,11 @@ from ..schema import (
     DialogueTemplate,
     Event,
     EventType,
+    Metadata,
     Participant,
     ServerInfo,
     TemplateRef,
+    TerminationPolicy,
     Visibility,
 )
 from ..state import InstanceHeader, Store, restore
@@ -113,8 +115,19 @@ class Registry:
         owner: str,
         visibility: Visibility | None = None,
         instance_id: str | None = None,
+        goal: str | None = None,
+        brief: Metadata | None = None,
+        termination: TerminationPolicy | None = None,
     ) -> DialogueInstance:
-        """Create an instance in ``created`` owned by ``owner`` (SPEC §2.3, D5)."""
+        """Create an instance in ``created`` owned by ``owner`` (SPEC §2.3, D5).
+
+        ``goal`` overrides the template's (generic) goal with this run's concrete objective; the
+        effective goal is ``instance.goal or template.goal``. ``termination`` likewise overrides the
+        template's termination policy for this run (effective = ``instance.termination_policy or
+        template.termination_policy``). ``brief`` is the concrete, per-run task input — what *this*
+        occurrence is about (vs. the template, which defines the *kind* of dialogue). All are
+        recorded in the instance-created event so they replay, and are surfaced at run time.
+        """
         template = self._store.get_template(template_ref.template_id, template_ref.version)
         if template is None:
             raise RegistryError(
@@ -129,7 +142,14 @@ class Registry:
                 visibility=vis, dcp_version=self._dcp_version, created_at=now,
             )
         )
-        self._emit(iid, EventType.INSTANCE_CREATED, owner=owner)
+        created_payload: dict[str, object] = {"owner": owner}
+        if goal:
+            created_payload["goal"] = goal
+        if brief:
+            created_payload["brief"] = dict(brief)
+        if termination is not None:
+            created_payload["termination_policy"] = termination.model_dump(mode="json")
+        self._emit(iid, EventType.INSTANCE_CREATED, **created_payload)
         # The owner holds the `own` tier and is seated on the roster from the start (D5).
         self._store.add_grant(AccessGrant(
             instance_id=iid, participant_id=owner, tier=AccessTier.OWN,

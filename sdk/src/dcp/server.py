@@ -18,9 +18,11 @@ from .registry import Authenticator, Registry
 from .schema import (
     DialogueInstance,
     DialogueTemplate,
+    Metadata,
     Participant,
     ServerInfo,
     TemplateRef,
+    TerminationPolicy,
     Visibility,
 )
 from .state import SqlStore
@@ -55,9 +57,13 @@ class Server:
         owner: str,
         visibility: Visibility | None = None,
         instance_id: str | None = None,
+        goal: str | None = None,
+        brief: Metadata | None = None,
+        termination: TerminationPolicy | None = None,
     ) -> DialogueInstance:
         return self.registry.instantiate(
-            template_ref, owner=owner, visibility=visibility, instance_id=instance_id
+            template_ref, owner=owner, visibility=visibility, instance_id=instance_id,
+            goal=goal, brief=brief, termination=termination,
         )
 
     def server_info(self) -> ServerInfo:

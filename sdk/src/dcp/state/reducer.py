@@ -18,6 +18,7 @@ from ..schema import (
     Message,
     PendingInput,
     RosterEntry,
+    TerminationPolicy,
     TerminationStatus,
 )
 from .store import InstanceHeader, Record
@@ -28,10 +29,18 @@ def _s(payload: dict[str, object], key: str, default: str = "") -> str:
     return v if isinstance(v, str) else default
 
 
+def _d(payload: dict[str, object], key: str) -> dict[str, object]:
+    v = payload.get(key)
+    return v if isinstance(v, dict) else {}
+
+
 def replay(header: InstanceHeader, records: list[Record]) -> DialogueInstance:
     """Reconstruct a DialogueInstance from its header + ordered log (full replay, TBD-28)."""
     started = False
     turn = 0
+    goal = ""
+    brief: dict[str, object] = {}
+    termination: TerminationPolicy | None = None
     terminal: InstanceStatus | None = None
     roster: dict[str, RosterEntry] = {}
     gates: dict[str, Gate] = {}
@@ -54,6 +63,11 @@ def replay(header: InstanceHeader, records: list[Record]) -> DialogueInstance:
         events.append(record)
         p = record.payload
         match record.type:
+            case EventType.INSTANCE_CREATED:
+                goal = _s(p, "goal")                   # per-run objective override (owner-supplied)
+                brief = _d(p, "brief")                 # the per-run task input (owner-supplied)
+                tp = _d(p, "termination_policy")       # per-run termination override (if any)
+                termination = TerminationPolicy.model_validate(tp) if tp else None
             case EventType.INSTANCE_STARTED:
                 started = True
             case EventType.TURN_ASSIGNED:
@@ -110,6 +124,9 @@ def replay(header: InstanceHeader, records: list[Record]) -> DialogueInstance:
         owner=header.owner,
         visibility=header.visibility,
         dcp_version=header.dcp_version,
+        goal=goal,
+        brief=brief,
+        termination_policy=termination,
         status=status,
         turn=turn,
         roster=list(roster.values()),
