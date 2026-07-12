@@ -15,7 +15,7 @@ from .oversight import (
     RubricOversight,
     ScriptedOversight,
 )
-from .policy import ControlPolicy, FlowPolicy, PlanPolicy
+from .policy import ControlPolicy, FlowPolicy, PlanPolicy, RecordsContextProjection
 
 __all__ = [
     "Orchestrator",
@@ -23,6 +23,7 @@ __all__ = [
     "DialogueContext",
     "resolve_termination",
     "ControlPolicy",
+    "RecordsContextProjection",
     "PlanPolicy",
     "FlowPolicy",
     "OversightPolicy",

@@ -43,8 +43,11 @@ GROUP_OVERSIGHT_POLICIES = "dcp.oversight_policies"
 GROUP_TEMPLATES = "dcp.templates"
 #: Entry-point group for shareable model providers (a packaged agent, resolved by name).
 GROUP_PROVIDERS = "dcp.providers"
+#: Entry-point group for installed components — a ``ComponentManifest`` or 0-arg factory (7A).
+GROUP_COMPONENTS = "dcp.components"
 #: All DCP entry-point groups.
-GROUPS = (GROUP_CONTROL_POLICIES, GROUP_OVERSIGHT_POLICIES, GROUP_TEMPLATES, GROUP_PROVIDERS)
+GROUPS = (GROUP_CONTROL_POLICIES, GROUP_OVERSIGHT_POLICIES, GROUP_TEMPLATES, GROUP_PROVIDERS,
+          GROUP_COMPONENTS)
 
 
 @dataclass(frozen=True)
@@ -130,6 +133,7 @@ __all__ = [
     "GROUP_OVERSIGHT_POLICIES",
     "GROUP_TEMPLATES",
     "GROUP_PROVIDERS",
+    "GROUP_COMPONENTS",
     "GROUPS",
     "PluginInfo",
     "list_plugins",

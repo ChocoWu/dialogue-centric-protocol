@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from dcp import schema as s  # noqa: E402
+from dcp.component import ComponentManifest  # noqa: E402
 
 _TOP_LEVEL = [
     s.DialogueTemplate,
@@ -30,6 +31,7 @@ _TOP_LEVEL = [
     s.RolesCast,
     s.AccessGrant,
     s.ServerInfo,
+    ComponentManifest,      # the Phase-7 component contract (portable, non-Python-validatable)
 ]
 
 _BANNER = "GENERATED from dcp.schema (Pydantic v2) — do not edit; run scripts/gen_schema.py."

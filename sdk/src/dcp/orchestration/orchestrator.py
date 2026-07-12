@@ -37,7 +37,7 @@ from .actions import OrchestratorAction
 from .context import DialogueContext
 from .human import HumanGateway
 from .oversight import DefaultOversight, OversightPolicy
-from .policy import ControlPolicy, FlowPolicy, PlanPolicy
+from .policy import ControlPolicy, FlowPolicy, PlanPolicy, RecordsContextProjection
 
 
 class Orchestrator:
@@ -155,7 +155,16 @@ class Orchestrator:
         ctx = DialogueContext.from_instance(
             restore(self.store, self.instance_id), self.template, self.provider
         )
-        return await self.control_policy.decide(ctx)
+        action = await self.control_policy.decide(ctx)
+        self._record_projection_audits()
+        return action
+
+    def _record_projection_audits(self) -> None:
+        """If the policy transmitted context off-box (a remote proxy), log what it sent (D12)."""
+        policy = self.control_policy
+        if isinstance(policy, RecordsContextProjection):
+            for audit in policy.drain_projection_audits():
+                self._emit(EventType.CONTEXT_PROJECTED, **dict(audit))
 
     # --- contribution ----------------------------------------------------------------
     async def _contribute(self, role: Role) -> tuple[TerminationStatus, str] | None:

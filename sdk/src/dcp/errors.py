@@ -45,6 +45,18 @@ class PluginError(DCPError):
     """A pluggable component could not be discovered or loaded (dcp.plugins entry points)."""
 
 
+class ComponentError(DCPError):
+    """A shareable component could not be described, resolved, or materialized (Phase 7)."""
+
+
+class ResolutionError(ComponentError):
+    """A component reference could not be located/planned, or a constraint was violated (D11)."""
+
+
+class RemoteComponentError(ComponentError):
+    """A remote component call failed or its descriptor did not match the manifest (7C; D13/D20)."""
+
+
 __all__ = [
     "DCPError",
     "SchemaError",
@@ -55,4 +67,7 @@ __all__ = [
     "ProviderError",
     "TerminationError",
     "PluginError",
+    "ComponentError",
+    "ResolutionError",
+    "RemoteComponentError",
 ]

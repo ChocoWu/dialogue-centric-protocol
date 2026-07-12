@@ -6,6 +6,11 @@ you ship a normal Python package that declares an **entry point**, and DCP disco
 installed. There is **no hosted code-upload service** and no lock-in — a consumer installs your
 package deliberately (`pip install your-pkg`) and resolves your component **by name**.
 
+> This is the quick in-process path. For a portable **manifest** with pinned references, model
+> checkpoints, dependencies, lockfiles, and **remote** delivery, see
+> [guide-components.md](guide-components.md) — the two coexist (an installed entry point is one
+> delivery mode of a component).
+
 | You built… | Interface | Entry-point group | Consumers load it with | Runtime resolves it via |
 |------------|-----------|-------------------|------------------------|-------------------------|
 | a **template** | `DialogueTemplate` (or a 0-arg factory) | `dcp.templates` | `plugins.load_template(name)` | — (used directly) |

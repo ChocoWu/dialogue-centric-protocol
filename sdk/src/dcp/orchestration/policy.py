@@ -12,6 +12,7 @@ implementing ``decide`` — a single method, not a whole loop.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Protocol, runtime_checkable
 
 from ..schema import Edge, TerminationStatus
@@ -24,6 +25,15 @@ class ControlPolicy(Protocol):
     """Decides the next control action for a turn (SPEC §1.7). The runtime does everything else."""
 
     async def decide(self, ctx: DialogueContext) -> OrchestratorAction: ...
+
+
+@runtime_checkable
+class RecordsContextProjection(Protocol):
+    """Optional seam: a policy that transmits context off-box (e.g. a remote proxy) surfaces an
+    audit of *what it sent* so the runtime can record it in the event log (D12). Payloads are plain
+    JSON-able mappings — the core stays free of any Phase-7 component types."""
+
+    def drain_projection_audits(self) -> Sequence[Mapping[str, object]]: ...
 
 
 def _flow_hint(ctx: DialogueContext) -> str:
@@ -122,4 +132,4 @@ class FlowPolicy:
         return OrchestratorAction(action="select_speaker", target_role_id=allowed[0].to_role)
 
 
-__all__ = ["ControlPolicy", "PlanPolicy", "FlowPolicy"]
+__all__ = ["ControlPolicy", "RecordsContextProjection", "PlanPolicy", "FlowPolicy"]

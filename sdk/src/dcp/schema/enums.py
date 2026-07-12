@@ -210,6 +210,7 @@ class EventType(StrEnum):
     REVISION_REQUESTED = "revision_requested"
     VERIFICATION_REQUESTED = "verification_requested"
     CONTEXT_INJECTED = "context_injected"
+    CONTEXT_PROJECTED = "context_projected"       # a remote policy transmitted a projection (D12)
 
 
 __all__ = [

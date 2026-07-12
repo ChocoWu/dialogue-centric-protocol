@@ -47,7 +47,12 @@ def _first_json(text: str) -> Any:
 
 
 class TransformersProvider:
-    """A :class:`~dcp.provider.base.ModelProvider` that runs an open-weights HF model in-process."""
+    """A :class:`~dcp.provider.base.ModelProvider` that runs an open-weights HF model in-process.
+
+    ``model`` is anything ``from_pretrained`` accepts — a Hugging Face id (``Qwen/Qwen3-4B``) **or a
+    local checkpoint directory**. Use :meth:`from_checkpoint` to build one from a provisioned
+    artifact path (the ``local`` + artifacts delivery mode, Phase 7B).
+    """
 
     def __init__(
         self,
@@ -61,6 +66,11 @@ class TransformersProvider:
         self._enable_thinking = enable_thinking
         self._max_new_tokens = max_new_tokens
         self._generate_fn = generate            # injected for tests; else lazily built (real model)
+
+    @classmethod
+    def from_checkpoint(cls, path: str, **kwargs: object) -> TransformersProvider:
+        """Build a provider from a local checkpoint directory (e.g. a provisioned artifact)."""
+        return cls(str(path), **kwargs)         # type: ignore[arg-type]
 
     @staticmethod
     def _messages(instructions: str, content: str) -> _Messages:

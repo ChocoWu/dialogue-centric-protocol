@@ -1,0 +1,862 @@
+{
+  "$comment": "GENERATED from dcp.schema (Pydantic v2) \u2014 do not edit; run scripts/gen_schema.py.",
+  "$defs": {
+    "AccessModeType": {
+      "enum": [
+        "local",
+        "remote"
+      ],
+      "title": "AccessModeType",
+      "type": "string"
+    },
+    "AgentSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "agent",
+          "default": "agent",
+          "title": "Kind",
+          "type": "string"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DependencyRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role_defaults": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoleDefaults"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "state": {
+          "$ref": "#/$defs/AgentState"
+        }
+      },
+      "title": "AgentSpec",
+      "type": "object"
+    },
+    "AgentState": {
+      "additionalProperties": false,
+      "description": "Declared, machine-checkable state of a (possibly remote) agent (D20).",
+      "properties": {
+        "mode": {
+          "default": "stateless",
+          "enum": [
+            "stateless",
+            "invocation_scoped",
+            "dialogue_scoped",
+            "external"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "reset_supported": {
+          "default": false,
+          "title": "Reset Supported",
+          "type": "boolean"
+        },
+        "retention": {
+          "default": "none",
+          "enum": [
+            "none",
+            "session",
+            "duration"
+          ],
+          "title": "Retention",
+          "type": "string"
+        }
+      },
+      "title": "AgentState",
+      "type": "object"
+    },
+    "ArtifactReference": {
+      "additionalProperties": false,
+      "description": "A resource a component depends on \u2014 never executable; always integrity-checked (D3/D19).",
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "License"
+        },
+        "requirements": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRequirements"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "size_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size Bytes"
+        },
+        "uri": {
+          "minLength": 1,
+          "title": "Uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "digest"
+      ],
+      "title": "ArtifactReference",
+      "type": "object"
+    },
+    "ArtifactRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "disk": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Disk"
+        },
+        "gpu_memory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gpu Memory"
+        }
+      },
+      "title": "ArtifactRequirements",
+      "type": "object"
+    },
+    "Author": {
+      "additionalProperties": false,
+      "properties": {
+        "contact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Author",
+      "type": "object"
+    },
+    "Binding": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol": {
+          "minLength": 1,
+          "title": "Protocol",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol",
+        "version"
+      ],
+      "title": "Binding",
+      "type": "object"
+    },
+    "ComponentIdentity": {
+      "additionalProperties": false,
+      "description": "Identity block ONLY \u2014 no kind-specific fields (D21).",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ComponentKind"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "namespace": {
+          "minLength": 1,
+          "title": "Namespace",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "name",
+        "version",
+        "kind"
+      ],
+      "title": "ComponentIdentity",
+      "type": "object"
+    },
+    "ComponentKind": {
+      "description": "What a component *is* \u2014 its ecosystem classification and materialization target (D14).",
+      "enum": [
+        "control_policy",
+        "oversight_policy",
+        "model_provider",
+        "agent",
+        "template"
+      ],
+      "title": "ComponentKind",
+      "type": "string"
+    },
+    "ComponentMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "authors": {
+          "items": {
+            "$ref": "#/$defs/Author"
+          },
+          "title": "Authors",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "License"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "visibility": {
+          "$ref": "#/$defs/Visibility",
+          "default": "public"
+        }
+      },
+      "title": "ComponentMetadata",
+      "type": "object"
+    },
+    "ComponentRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "dcp": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dcp"
+        },
+        "python": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Python"
+        }
+      },
+      "title": "ComponentRequirements",
+      "type": "object"
+    },
+    "ContextRequirements": {
+      "additionalProperties": false,
+      "description": "What a remote component *asks* for; the owner still controls the projection (D12).",
+      "properties": {
+        "optional": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Optional",
+          "type": "array"
+        },
+        "required": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required",
+          "type": "array"
+        }
+      },
+      "title": "ContextRequirements",
+      "type": "object"
+    },
+    "ControlPolicySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "control_policy",
+          "default": "control_policy",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "ControlPolicySpec",
+      "type": "object"
+    },
+    "DependencyRef": {
+      "additionalProperties": false,
+      "description": "A pinned dependency. ``expected_kind`` is a constraint on the resolved manifest, not a\ndeclaration by the parent (D23).",
+      "properties": {
+        "expected_kind": {
+          "$ref": "#/$defs/ComponentKind"
+        },
+        "interface_constraint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InterfaceConstraint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "mode_constraint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AccessModeType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ref": {
+          "minLength": 1,
+          "title": "Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "expected_kind"
+      ],
+      "title": "DependencyRef",
+      "type": "object"
+    },
+    "Digest": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "const": "sha256",
+          "default": "sha256",
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Digest",
+      "type": "object"
+    },
+    "InterfaceConstraint": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/InterfaceName"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "InterfaceConstraint",
+      "type": "object"
+    },
+    "InterfaceDeclaration": {
+      "additionalProperties": false,
+      "description": "The runtime-interface contract. ``version`` is independent of any binding version (D18).",
+      "properties": {
+        "config_schema": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Config Schema"
+        },
+        "name": {
+          "$ref": "#/$defs/InterfaceName"
+        },
+        "version": {
+          "pattern": "^\\d+\\.\\d+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "InterfaceDeclaration",
+      "type": "object"
+    },
+    "InterfaceName": {
+      "description": "The runtime-interface contract a component instantiates to (D18). Namespaced.",
+      "enum": [
+        "dcp.control_policy",
+        "dcp.oversight_policy",
+        "dcp.model_provider",
+        "dcp.agent_definition",
+        "dcp.dialogue_template"
+      ],
+      "title": "InterfaceName",
+      "type": "string"
+    },
+    "LocalAccessMode": {
+      "additionalProperties": false,
+      "properties": {
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/ArtifactReference"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "implementation": {
+          "$ref": "#/$defs/PackageImplementation"
+        },
+        "type": {
+          "const": "local",
+          "default": "local",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "implementation"
+      ],
+      "title": "LocalAccessMode",
+      "type": "object"
+    },
+    "ModelProviderSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "model_provider",
+          "default": "model_provider",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "ModelProviderSpec",
+      "type": "object"
+    },
+    "OversightPolicySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "oversight_policy",
+          "default": "oversight_policy",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "OversightPolicySpec",
+      "type": "object"
+    },
+    "PackageImplementation": {
+      "additionalProperties": false,
+      "description": "A local, importable implementation (the entry-point path becomes one such mode, D1).",
+      "properties": {
+        "entrypoint": {
+          "minLength": 1,
+          "title": "Entrypoint",
+          "type": "string"
+        },
+        "package": {
+          "minLength": 1,
+          "title": "Package",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/PackageSource"
+        },
+        "type": {
+          "const": "python_package",
+          "default": "python_package",
+          "title": "Type",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "source",
+        "package",
+        "entrypoint"
+      ],
+      "title": "PackageImplementation",
+      "type": "object"
+    },
+    "PackageSource": {
+      "enum": [
+        "pypi",
+        "git",
+        "file"
+      ],
+      "title": "PackageSource",
+      "type": "string"
+    },
+    "RemoteAccessMode": {
+      "additionalProperties": false,
+      "properties": {
+        "auth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RemoteAuth"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "binding": {
+          "$ref": "#/$defs/Binding"
+        },
+        "component_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component Id"
+        },
+        "context_requirements": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContextRequirements"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "endpoint": {
+          "pattern": "^https?://.+",
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "type": {
+          "const": "remote",
+          "default": "remote",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding",
+        "endpoint"
+      ],
+      "title": "RemoteAccessMode",
+      "type": "object"
+    },
+    "RemoteAuth": {
+      "additionalProperties": false,
+      "description": "Declares *which* credential is needed by a logical slot; the owner maps it (D22).",
+      "properties": {
+        "credential_slot": {
+          "minLength": 1,
+          "title": "Credential Slot",
+          "type": "string"
+        },
+        "type": {
+          "default": "bearer",
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        },
+        "user_supplied": {
+          "default": true,
+          "title": "User Supplied",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "credential_slot"
+      ],
+      "title": "RemoteAuth",
+      "type": "object"
+    },
+    "ResponseRequirement": {
+      "description": "Per-role wait/mandate policy (SPEC \u00a71.4; renamed from ``response_mode``; TBD-5).",
+      "enum": [
+        "required",
+        "optional",
+        "gate"
+      ],
+      "title": "ResponseRequirement",
+      "type": "string"
+    },
+    "RoleDefaults": {
+      "additionalProperties": false,
+      "description": "Non-authoritative suggestions materialized into a Role before runtime (D8).",
+      "properties": {
+        "persona": {
+          "default": "",
+          "title": "Persona",
+          "type": "string"
+        },
+        "response_requirement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResponseRequirement"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "RoleDefaults",
+      "type": "object"
+    },
+    "TemplateSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "template",
+          "default": "template",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "TemplateSpec",
+      "type": "object"
+    },
+    "Visibility": {
+      "description": "Instance visibility (SPEC \u00a71.6; D5).",
+      "enum": [
+        "public",
+        "unlisted",
+        "private"
+      ],
+      "title": "Visibility",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A versioned, deliverable DCP component (PROPOSAL \u00a74). ``extra=\"forbid\"`` like DCP schema.",
+  "properties": {
+    "access_modes": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "local": "#/$defs/LocalAccessMode",
+            "remote": "#/$defs/RemoteAccessMode"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/LocalAccessMode"
+          },
+          {
+            "$ref": "#/$defs/RemoteAccessMode"
+          }
+        ]
+      },
+      "minItems": 1,
+      "title": "Access Modes",
+      "type": "array"
+    },
+    "capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "component": {
+      "$ref": "#/$defs/ComponentIdentity"
+    },
+    "dependencies": {
+      "items": {
+        "$ref": "#/$defs/DependencyRef"
+      },
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "interface": {
+      "$ref": "#/$defs/InterfaceDeclaration"
+    },
+    "metadata": {
+      "$ref": "#/$defs/ComponentMetadata"
+    },
+    "requirements": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComponentRequirements"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "spec": {
+      "discriminator": {
+        "mapping": {
+          "agent": "#/$defs/AgentSpec",
+          "control_policy": "#/$defs/ControlPolicySpec",
+          "model_provider": "#/$defs/ModelProviderSpec",
+          "oversight_policy": "#/$defs/OversightPolicySpec",
+          "template": "#/$defs/TemplateSpec"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ControlPolicySpec"
+        },
+        {
+          "$ref": "#/$defs/OversightPolicySpec"
+        },
+        {
+          "$ref": "#/$defs/ModelProviderSpec"
+        },
+        {
+          "$ref": "#/$defs/TemplateSpec"
+        },
+        {
+          "$ref": "#/$defs/AgentSpec"
+        }
+      ],
+      "title": "Spec"
+    }
+  },
+  "required": [
+    "component",
+    "interface",
+    "spec",
+    "access_modes"
+  ],
+  "title": "ComponentManifest",
+  "type": "object"
+}

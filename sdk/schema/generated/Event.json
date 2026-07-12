@@ -25,7 +25,8 @@
         "post_action_verified",
         "revision_requested",
         "verification_requested",
-        "context_injected"
+        "context_injected",
+        "context_projected"
       ],
       "title": "EventType",
       "type": "string"

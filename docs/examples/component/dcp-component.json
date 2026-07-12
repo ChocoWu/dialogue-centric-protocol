@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "component": {
+    "namespace": "dcp-examples",
+    "name": "round-robin",
+    "version": "1.0.0",
+    "kind": "control_policy"
+  },
+  "metadata": {
+    "description": "A model-free round-robin orchestrator (docs example).",
+    "license": "Apache-2.0"
+  },
+  "interface": { "name": "dcp.control_policy", "version": "1.0" },
+  "capabilities": ["dcp.control.next_speaker", "dcp.control.terminate"],
+  "access_modes": [
+    {
+      "type": "local",
+      "implementation": {
+        "type": "python_package",
+        "source": "pypi",
+        "package": "dcp-examples-round-robin",
+        "entrypoint": "round_robin:RoundRobinPolicy"
+      }
+    },
+    {
+      "type": "remote",
+      "binding": { "protocol": "dcp-http", "version": "1.0" },
+      "endpoint": "http://127.0.0.1:8123"
+    }
+  ]
+}

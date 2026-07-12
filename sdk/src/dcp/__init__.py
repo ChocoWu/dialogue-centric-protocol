@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from . import (
     authoring,
+    component,
     config,
     delivery,
     errors,
@@ -93,6 +94,7 @@ __all__ = [
     "registry",
     "delivery",
     "authoring",
+    "component",
     "plugins",
     "presets",
     "evaluation",
