@@ -1,9 +1,10 @@
 """Plugin discovery via Python entry points (Phase 6.1d) — the *sharing* mechanism.
 
-Third-party packages contribute pluggable DCP components — control policies, oversight policies, and
-templates — by declaring **entry points**, and DCP discovers what is installed. This is how "bring
-your own orchestrator / verification / template" becomes ``pip install ...`` + resolve-by-name, with
-no hosted code-upload service (the standard, secure packaging path).
+Third-party packages contribute pluggable DCP components — control policies, oversight policies,
+templates, and model providers (a packaged "agent") — by declaring **entry points**, and DCP
+discovers what is installed. This is how "bring your own orchestrator / verification / template /
+agent" becomes ``pip install ...`` + resolve-by-name, with no hosted code-upload service (the
+standard, secure packaging path).
 
 A contributing package declares, in its ``pyproject.toml``::
 
@@ -15,6 +16,9 @@ A contributing package declares, in its ``pyproject.toml``::
 
     [project.entry-points."dcp.templates"]
     research_companion = "my_pkg.templates:research_companion"   # a DialogueTemplate or factory
+
+    [project.entry-points."dcp.providers"]
+    my_agent = "my_pkg.provider:MyProvider"      # a ModelProvider class/factory (resolved by name)
 
 Then :func:`list_plugins` enumerates them (metadata only, no import), :func:`load_plugin` imports
 one by name, and :func:`available_plugins` feeds ``server_info`` (SPEC §1.11) so a server can
@@ -37,8 +41,10 @@ GROUP_CONTROL_POLICIES = "dcp.control_policies"
 GROUP_OVERSIGHT_POLICIES = "dcp.oversight_policies"
 #: Entry-point group for shareable dialogue templates.
 GROUP_TEMPLATES = "dcp.templates"
+#: Entry-point group for shareable model providers (a packaged agent, resolved by name).
+GROUP_PROVIDERS = "dcp.providers"
 #: All DCP entry-point groups.
-GROUPS = (GROUP_CONTROL_POLICIES, GROUP_OVERSIGHT_POLICIES, GROUP_TEMPLATES)
+GROUPS = (GROUP_CONTROL_POLICIES, GROUP_OVERSIGHT_POLICIES, GROUP_TEMPLATES, GROUP_PROVIDERS)
 
 
 @dataclass(frozen=True)
@@ -100,6 +106,11 @@ def load_oversight_policy(name: str, *, source: Iterable[EntryPoint] | None = No
     return load_plugin(GROUP_OVERSIGHT_POLICIES, name, source=source)
 
 
+def load_model_provider(name: str, *, source: Iterable[EntryPoint] | None = None) -> Any:
+    """Load a model-provider plugin (a ``ModelProvider`` class, factory, or instance)."""
+    return load_plugin(GROUP_PROVIDERS, name, source=source)
+
+
 def load_template(
     name: str, *, source: Iterable[EntryPoint] | None = None
 ) -> DialogueTemplate:
@@ -118,6 +129,7 @@ __all__ = [
     "GROUP_CONTROL_POLICIES",
     "GROUP_OVERSIGHT_POLICIES",
     "GROUP_TEMPLATES",
+    "GROUP_PROVIDERS",
     "GROUPS",
     "PluginInfo",
     "list_plugins",
@@ -125,5 +137,6 @@ __all__ = [
     "load_plugin",
     "load_control_policy",
     "load_oversight_policy",
+    "load_model_provider",
     "load_template",
 ]

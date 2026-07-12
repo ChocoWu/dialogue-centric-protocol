@@ -75,4 +75,4 @@ Presets are optional — you can build a `DialogueTemplate` directly (see the he
 ## Share your template
 
 Package a template factory and declare a `dcp.templates` entry point so others can `pip install` and
-`load_template("name")` it — see [guide-extending.md](guide-extending.md#4-share-it--entry-points).
+`load_template("name")` it — see [guide-sharing.md](guide-sharing.md#1-share-a-dialogue-template).

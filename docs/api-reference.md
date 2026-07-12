@@ -129,12 +129,40 @@ resolve_termination(*, errored=False, over_budget=False, over_turns=False,
 ModelProvider         # Protocol: async text(instructions, content) -> str
                       #           async structured(instructions, content, schema) -> BaseModel
 MockProvider(*, texts=[...], structured_queue=[...], structured_by_type={...})   # no network/key
-OpenAIProvider(model, *, api_key=None)         # dcp.provider.openai_provider
+OpenAIProvider(model, *, api_key=None, base_url=None)   # dcp.provider.openai_provider
 AnthropicProvider(model, *, api_key=None)      # dcp.provider.anthropic_provider
+LocalProvider(model, *, base_url, api_key=None)   # local/OSS via an OpenAI-compatible endpoint
+                                                  # provider="local" + DCP_BASE_URL (vLLM/Ollama/…)
+TransformersProvider(model="Qwen/Qwen3-4B", *, enable_thinking=False, max_new_tokens=512)
+                                                  # in-process HF model; provider="transformers"
+                                                  # needs: pip install "dcp[transformers]"
 
 build_provider(binding: ModelBinding, *, api_key=None) -> ModelProvider   # per-binding factory (D8)
+                                                  # unknown name -> a `dcp.providers` plugin (agent)
 orchestrator_binding(config: Config) -> ModelBinding                      # env default binding
-available_providers(env=None) -> list[ProviderInfo]                       # for ServerInfo
+available_providers(env=None) -> list[ProviderInfo]      # built-ins + installed provider plugins
+```
+
+## Replay viewer
+
+```python
+render_timeline(store, instance_id) -> str     # transcript interleaved with control + oversight
+# also: `dcp show <id> --timeline`
+```
+
+## Evaluation  (`dcp.evaluation`)
+
+Benchmark orchestrators / oversight policies (see [guide-eval.md](guide-eval.md)).
+
+```python
+Scenario(name, template, cast, participants, *, agent_providers={}, human_gateway=None,
+         orchestrator_provider=None, control_policy=None, oversight=None, scorer=None)
+Candidate(name, *, control_policy=None, oversight=None)
+Metric(name, fn, higher_is_better=None) ; DEFAULT_METRICS
+
+await run_matrix(scenarios, candidates, metrics=DEFAULT_METRICS) -> list[RunResult]
+aggregate(results) -> {candidate: {metric: mean}}     # + success_rate
+render_report(results) -> str                          # comparison table
 ```
 
 ## State  (`dcp.state`)
@@ -182,20 +210,25 @@ get_preset(name) -> DialogueTemplate        # a fresh template (RegistryError if
 
 ## Plugins  (`dcp.plugins`)
 
-Discover and load shareable components (control policies / oversight / templates) contributed by
-installed packages via entry points. See [guide-extending.md](guide-extending.md).
+Discover and load shareable components (control policies / oversight / templates / providers)
+contributed by installed packages via entry points. See [guide-sharing.md](guide-sharing.md).
 
 ```python
 GROUP_CONTROL_POLICIES = "dcp.control_policies"
 GROUP_OVERSIGHT_POLICIES = "dcp.oversight_policies"
 GROUP_TEMPLATES = "dcp.templates"
+GROUP_PROVIDERS = "dcp.providers"                   # a packaged agent (ModelProvider), by name
 
 list_plugins(group=None) -> list[PluginInfo]      # (group, name, value); nothing imported
 available_plugins() -> dict[str, list[str]]        # group -> names (feeds server_info.plugins)
 load_plugin(group, name) -> object                 # import the target on demand
 load_control_policy(name) / load_oversight_policy(name)
+load_model_provider(name) -> object                # a ModelProvider class/factory/instance
 load_template(name) -> DialogueTemplate            # resolves an instance or a 0-arg factory
 ```
+
+A `dcp.providers` plugin is resolved by name inside `build_provider`, so
+`ModelBinding(provider="<name>")` builds it; a built-in provider name always takes precedence.
 
 ## Config & errors
 

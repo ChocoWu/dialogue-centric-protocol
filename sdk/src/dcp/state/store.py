@@ -95,6 +95,10 @@ class _GrantRow(_Base):
     data: Mapped[str] = mapped_column(Text)            # AccessGrant.model_dump_json()
 
 
+#: SQLAlchemy metadata for all DCP tables — the target for Alembic migrations (see sdk/migrations).
+metadata = _Base.metadata
+
+
 @runtime_checkable
 class Store(Protocol):
     """Persistence interface (SPEC §3.4). I/O edge; the semantic core depends only on this."""
@@ -124,7 +128,7 @@ def _decode(kind: str, data: str) -> Record:
 class SqlStore:
     """SQLAlchemy-backed :class:`Store`. ``sqlite:///:memory:`` for tests, Postgres for prod."""
 
-    def __init__(self, url: str = "sqlite:///:memory:") -> None:
+    def __init__(self, url: str = "sqlite:///:memory:", *, create_tables: bool = True) -> None:
         kwargs: dict[str, object] = {}
         if url.startswith("sqlite"):
             kwargs["connect_args"] = {"check_same_thread": False}
@@ -133,7 +137,10 @@ class SqlStore:
                 # ASGI TestClient worker) instead of SingletonThreadPool's per-thread schema.
                 kwargs["poolclass"] = StaticPool
         self._engine = create_engine(url, **kwargs)
-        _Base.metadata.create_all(self._engine)
+        # Convenient for dev/tests; a production deployment sets create_tables=False and manages the
+        # schema with Alembic migrations (`alembic upgrade head`; see sdk/migrations).
+        if create_tables:
+            _Base.metadata.create_all(self._engine)
 
     # --- instances -------------------------------------------------------------------
     def create_instance(self, header: InstanceHeader) -> None:

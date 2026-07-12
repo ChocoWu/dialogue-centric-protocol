@@ -10,14 +10,18 @@ from .factory import (
     build_provider,
     orchestrator_binding,
 )
+from .local_provider import LocalProvider
 from .mock import MockProvider
 from .openai_provider import OpenAIProvider
+from .transformers_provider import TransformersProvider
 
 __all__ = [
     "ModelProvider",
     "MockProvider",
     "OpenAIProvider",
     "AnthropicProvider",
+    "LocalProvider",
+    "TransformersProvider",
     "build_provider",
     "orchestrator_binding",
     "available_providers",

@@ -87,6 +87,19 @@
       "additionalProperties": false,
       "description": "Which model backs a consumer (D7/D8; SPEC \u00a74.5b). No credential field \u2014\nthe API key is resolved from the environment by ``provider`` (D8 / TBD-30).",
       "properties": {
+        "base_url": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Url"
+        },
         "model": {
           "minLength": 1,
           "title": "Model",

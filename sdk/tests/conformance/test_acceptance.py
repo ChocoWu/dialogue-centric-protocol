@@ -203,7 +203,8 @@ async def test_resume_continues_a_running_instance() -> None:
 def test_server_info_advertises_version_and_providers() -> None:
     info = Registry(SqlStore()).server_info(env={})
     assert info.dcp_version == "0.2.0"
-    assert {p.provider for p in info.model_providers} == {"openai", "anthropic", "mock"}
+    providers = {p.provider for p in info.model_providers}
+    assert providers == {"openai", "anthropic", "local", "transformers", "mock"}
 
 
 async def test_oversight_governs_control_pre_recovery_and_post_routing() -> None:

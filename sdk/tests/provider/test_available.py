@@ -19,4 +19,11 @@ def test_mock_is_always_configured_real_providers_follow_env() -> None:
 
 def test_no_keys_means_only_mock_configured() -> None:
     infos = {i.provider: i.configured for i in available_providers(env={})}
-    assert infos == {"mock": True, "openai": False, "anthropic": False}
+    assert infos == {"mock": True, "openai": False, "anthropic": False,
+                     "local": False, "transformers": False}
+
+
+def test_local_is_configured_by_endpoint_not_a_key() -> None:
+    infos = {i.provider: i.configured
+             for i in available_providers(env={"DCP_BASE_URL": "http://localhost:11434/v1"})}
+    assert infos["local"] is True and infos["mock"] is True

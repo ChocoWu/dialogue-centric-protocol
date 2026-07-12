@@ -28,7 +28,8 @@ def _ref() -> s.TemplateRef:
 def test_server_info_without_generator_disables_auto_generate() -> None:
     info = Registry(SqlStore()).server_info(env={})
     assert info.capabilities.auto_generate is False
-    assert {p.provider for p in info.model_providers} == {"openai", "anthropic", "mock"}
+    providers = {p.provider for p in info.model_providers}
+    assert providers == {"openai", "anthropic", "local", "transformers", "mock"}
 
 
 def test_server_info_with_generator_advertises_auto_generate() -> None:

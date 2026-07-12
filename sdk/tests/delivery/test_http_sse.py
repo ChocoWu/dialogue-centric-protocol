@@ -140,7 +140,8 @@ def test_server_info_lists_capabilities_and_providers() -> None:
     body = r.json()
     assert body["dcp_version"] == "0.2.0"
     assert body["capabilities"]["auto_generate"] is False        # no generator wired
-    assert {p["provider"] for p in body["model_providers"]} == {"openai", "anthropic", "mock"}
+    providers = {p["provider"] for p in body["model_providers"]}
+    assert providers == {"openai", "anthropic", "local", "transformers", "mock"}
 
 
 def test_get_template_version() -> None:

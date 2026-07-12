@@ -23,8 +23,10 @@ class ModelBinding(DCPModel):
     """Which model backs a consumer (D7/D8; SPEC §4.5b). No credential field —
     the API key is resolved from the environment by ``provider`` (D8 / TBD-30)."""
 
-    provider: NonEmptyStr          # "openai" | "anthropic" | "mock" | ...
+    provider: NonEmptyStr          # "openai" | "anthropic" | "local" | "mock" | ...
     model: NonEmptyStr
+    #: OpenAI-compatible endpoint for the ``local`` provider (vLLM/Ollama/LM Studio); else unset.
+    base_url: NonEmptyStr | None = None
 
 
 class TerminationPolicy(DCPModel):

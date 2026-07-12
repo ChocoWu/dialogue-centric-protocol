@@ -74,6 +74,28 @@ Now the orchestrator's model decides who speaks and when to stop (plan mode), an
 writes its own contribution. Nothing else in your code changes — just drop the scripted
 `MockProvider`s and the `Server` builds real providers from the environment.
 
+### Run it on an open / local model
+
+You don't need a hosted API. Two provider options run open-weights models:
+
+- **`local`** — talk to any **OpenAI-compatible server** (vLLM, Ollama, LM Studio, …). Point at it
+  with `DCP_BASE_URL`; no key needed. No extra install.
+
+  ```bash
+  DCP_MODEL_PROVIDER=local DCP_BASE_URL=http://localhost:11434/v1 DCP_MODEL=llama3.1
+  ```
+
+- **`transformers`** — load and run the model **inside the Python process** with HuggingFace
+  `transformers` + `torch` (e.g. **Qwen3**). No server, no API, no key — but it needs the extra:
+
+  ```bash
+  pip install -e "./sdk[transformers]"
+  # then: DCP_MODEL_PROVIDER=transformers DCP_MODEL=Qwen/Qwen3-4B
+  ```
+
+See the [api reference](api-reference.md#model-providers) for `LocalProvider` /
+`TransformersProvider` if you'd rather construct them directly.
+
 Discover what a server can do at runtime:
 
 ```python
@@ -112,6 +134,38 @@ POST /templates/generate                   → draft a template from a query (if
 
 See [guide-hosting.md](guide-hosting.md) for auth, access tiers, visibility, and auto-generation.
 
+## 5. The `dcp` command line
+
+Installing the package puts a `dcp` command on your `PATH` — a quick way to introspect a server, the
+preset catalog, and installed plugins without writing any code.
+
+```bash
+dcp --version                      # 0.2.0.dev0
+dcp info                           # version, capabilities, configured providers, plugins
+dcp presets                        # the built-in template catalog
+dcp plugins                        # components contributed by installed packages
+dcp serve --db sqlite:///./dcp.db  # run the HTTP + SSE server (host/port flags too)
+```
+
+`dcp info` reads your environment, so it doubles as a config check — it shows which providers are
+configured (an API key present, `DCP_BASE_URL` set, or the `transformers` extra installed):
+
+```
+model providers:
+  openai       not configured
+  anthropic    not configured
+  local        not configured
+  transformers not configured
+  mock         configured
+```
+
+And once a dialogue has run, replay its transcript straight from the database — add `--timeline` to
+interleave the control decisions and oversight verdicts:
+
+```bash
+dcp show <instance-id> --db sqlite:///./dcp.db --timeline
+```
+
 ## Next steps
 
 - [concepts.md](concepts.md) — templates vs instances, roles vs participants, the five layers, and
@@ -119,8 +173,10 @@ See [guide-hosting.md](guide-hosting.md) for auth, access tiers, visibility, and
 - [guide-templates.md](guide-templates.md) — start from a preset template and adapt it.
 - [guide-hosting.md](guide-hosting.md) — multi-user hosting: registration, joining, access control,
   bearer auth, HTTP/SSE, and query→template auto-generation.
-- [guide-extending.md](guide-extending.md) — write and share a custom orchestrator, oversight policy,
-  or template as a plugin.
+- [guide-extending.md](guide-extending.md) — author a custom orchestrator, oversight policy, agent,
+  or template.
+- [guide-sharing.md](guide-sharing.md) — package and distribute any of those as a `pip`-installable
+  plugin others resolve by name.
 - [guide-research-companion.md](guide-research-companion.md) — a full flagship MAS: custom
   orchestrator + grounding oversight + human gate, end to end.
 - [api-reference.md](api-reference.md) — the curated public API.

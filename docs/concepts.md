@@ -121,8 +121,17 @@ specific branches in tests.
 
 - **`plan`** — the orchestrator selects the next speaker freely (emergent). In the SDK it asks its
   provider for a structured `OrchestratorAction`.
-- **`flow`** — the orchestrator follows the template's declared `flow` graph (`entry` + `edges`),
-  deterministic.
+- **`flow`** — the orchestrator follows the template's declared `flow` graph (`entry` + `edges`).
+  The graph is **non-linear** (branches and loops) and **guided**, not a rigid script: succession is
+  *constrained* to the graph's edges, deterministic where a role has a single outgoing edge and
+  model-chosen among the allowed roles at a branch. The declared flow is the *initial* order — the
+  oversight loop may adapt it at runtime (e.g. re-select an alternative when a candidate isn't ready).
+
+Who makes the decision each turn is a pluggable **`ControlPolicy`** — the orchestrator "brain."
+`PlanPolicy` (emergent) and `FlowPolicy` (guided) are the built-ins chosen by `mode`, but you can
+supply your own to `Orchestrator`/`Server.run`. *Policy proposes, runtime disposes:* the policy
+returns an `OrchestratorAction`, and the orchestrator still applies oversight, recovery, and
+termination around it. See [guide-extending.md](guide-extending.md).
 
 ## Termination (§2.10)
 

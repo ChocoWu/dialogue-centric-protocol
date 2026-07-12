@@ -5,7 +5,7 @@ Install it (``pip install -e examples/plugin-example``) and DCP discovers these 
     >>> import dcp
     >>> dcp.available_plugins()
     {'dcp.control_policies': ['round_robin'], 'dcp.oversight_policies': ['no_shouting'],
-     'dcp.templates': ['two_agent_debate']}
+     'dcp.templates': ['two_agent_debate'], 'dcp.providers': ['echo']}
     >>> Policy = dcp.load_plugin('dcp.control_policies', 'round_robin')
     >>> template = dcp.plugins.load_template('two_agent_debate')
 
@@ -14,6 +14,7 @@ Each component is a plain object implementing a DCP interface — nothing here i
 
 from __future__ import annotations
 
+from dcp.errors import ProviderError
 from dcp.orchestration import (
     CheckOutcome,
     DialogueContext,
@@ -83,4 +84,24 @@ def two_agent_debate() -> DialogueTemplate:
     )
 
 
-__all__ = ["RoundRobinPolicy", "NoShoutingOversight", "two_agent_debate"]
+class EchoProvider:
+    """A shareable agent (ModelProvider) — resolved by name via the ``dcp.providers`` entry point.
+
+    A packaged agent is just a ``ModelProvider``: async ``text`` (agent contributions) and
+    ``structured`` (decisions/oversight). This demo is text-only — a legitimate shape for an agent
+    that only ever *speaks*, never orchestrates — so ``structured`` refuses rather than pretends.
+    Once installed, ``ModelBinding(provider="echo", model=...)`` builds it (``build_provider``).
+    """
+
+    def __init__(self, model: str = "echo") -> None:
+        self.model = model
+
+    async def text(self, *, instructions: str, content: str) -> str:
+        last = content.strip().splitlines()[-1] if content.strip() else "hello"
+        return f"[{self.model}] {last}"
+
+    async def structured(self, *, instructions: str, content: str, schema: type) -> object:
+        raise ProviderError("EchoProvider is text-only; use it for agent turns, not decisions")
+
+
+__all__ = ["RoundRobinPolicy", "NoShoutingOversight", "two_agent_debate", "EchoProvider"]

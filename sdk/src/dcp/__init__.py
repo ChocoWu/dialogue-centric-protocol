@@ -12,6 +12,7 @@ from . import (
     config,
     delivery,
     errors,
+    evaluation,
     orchestration,
     participation,
     plugins,
@@ -25,6 +26,7 @@ from .authoring import TemplateGenerator
 from .config import Config, load_dotenv
 from .delivery import HttpSseDelivery, build_app
 from .errors import DCPError
+from .evaluation import Candidate, Scenario, render_report, run_matrix
 from .orchestration import ControlPolicy, DialogueContext, Orchestrator
 from .participation import ParticipantRegistry, cast_roles
 from .plugins import available_plugins, list_plugins, load_plugin
@@ -38,6 +40,7 @@ from .registry import (
 )
 from .server import Server
 from .state import SqlStore, restore
+from .viewer import render_timeline
 
 #: Package (distribution) version — PEP 440.
 __version__ = "0.2.0.dev0"
@@ -53,6 +56,11 @@ __all__ = [
     "DCPError",
     "SqlStore",
     "restore",
+    "render_timeline",
+    "Scenario",
+    "Candidate",
+    "run_matrix",
+    "render_report",
     "ParticipantRegistry",
     "cast_roles",
     "ModelProvider",
@@ -87,4 +95,5 @@ __all__ = [
     "authoring",
     "plugins",
     "presets",
+    "evaluation",
 ]

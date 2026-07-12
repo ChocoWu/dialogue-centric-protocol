@@ -26,6 +26,8 @@ DEFAULT_DATABASE_URL = "sqlite:///./dcp.db"
 _PROVIDER_KEY_ENV: dict[str, str] = {
     "openai": "OPENAI_API_KEY",
     "anthropic": "ANTHROPIC_API_KEY",
+    "local": "DCP_LOCAL_API_KEY",  # optional; most local servers ignore it
+    "transformers": "",  # in-process HF model — no key
     "mock": "",  # no key needed
 }
 
@@ -60,6 +62,7 @@ class Config:
     model_provider: str = DEFAULT_MODEL_PROVIDER
     model: str | None = None
     database_url: str = DEFAULT_DATABASE_URL
+    base_url: str | None = None      # OpenAI-compatible endpoint for the `local` provider (6.3a)
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> Config:
@@ -69,6 +72,7 @@ class Config:
             model_provider=e.get("DCP_MODEL_PROVIDER", DEFAULT_MODEL_PROVIDER),
             model=e.get("DCP_MODEL") or None,
             database_url=e.get("DCP_DATABASE_URL", DEFAULT_DATABASE_URL),
+            base_url=e.get("DCP_BASE_URL") or None,
         )
 
     @staticmethod

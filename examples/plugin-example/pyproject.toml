@@ -19,5 +19,8 @@ no_shouting = "dcp_plugin_example:NoShoutingOversight"
 [project.entry-points."dcp.templates"]
 two_agent_debate = "dcp_plugin_example:two_agent_debate"
 
+[project.entry-points."dcp.providers"]
+echo = "dcp_plugin_example:EchoProvider"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/dcp_plugin_example"]

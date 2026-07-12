@@ -43,7 +43,8 @@ def _seed(server: Server) -> None:
 def test_server_info_via_facade() -> None:
     info = Server(database_url="sqlite:///:memory:").server_info()
     assert info.dcp_version == "0.2.0"
-    assert {p.provider for p in info.model_providers} == {"openai", "anthropic", "mock"}
+    providers = {p.provider for p in info.model_providers}
+    assert providers == {"openai", "anthropic", "local", "transformers", "mock"}
 
 
 async def test_facade_runs_mock_dialogue_to_done() -> None:

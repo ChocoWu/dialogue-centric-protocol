@@ -5,7 +5,7 @@ from __future__ import annotations
 from ..errors import RegistryError
 from ..schema import DialogueInstance
 from .reducer import replay
-from .store import InstanceHeader, Record, SqlStore, Store
+from .store import InstanceHeader, Record, SqlStore, Store, metadata
 
 
 def restore(store: Store, instance_id: str) -> DialogueInstance:
@@ -19,4 +19,4 @@ def restore(store: Store, instance_id: str) -> DialogueInstance:
     return replay(header, store.load_records(instance_id))
 
 
-__all__ = ["Store", "SqlStore", "InstanceHeader", "Record", "replay", "restore"]
+__all__ = ["Store", "SqlStore", "InstanceHeader", "Record", "metadata", "replay", "restore"]

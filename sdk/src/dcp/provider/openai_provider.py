@@ -20,7 +20,8 @@ class OpenAIProvider:
     """A :class:`~dcp.provider.base.ModelProvider` backed by OpenAI chat completions."""
 
     def __init__(
-        self, model: str, *, api_key: str | None = None, client: Any | None = None
+        self, model: str, *, api_key: str | None = None, base_url: str | None = None,
+        client: Any | None = None,
     ) -> None:
         self.model = model
         if client is not None:
@@ -28,7 +29,8 @@ class OpenAIProvider:
         else:
             from openai import AsyncOpenAI  # lazy: no import cost / key check until used
 
-            self._client = AsyncOpenAI(api_key=api_key)  # api_key=None -> OPENAI_API_KEY env
+            # api_key=None -> OPENAI_API_KEY env; base_url=None -> the OpenAI default endpoint
+            self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
     def _messages(self, instructions: str, content: str) -> list[dict[str, str]]:
         return [
