@@ -8,7 +8,7 @@ package deliberately (`pip install your-pkg`) and resolves your component **by n
 
 > This is the quick in-process path. For a portable **manifest** with pinned references, model
 > checkpoints, dependencies, lockfiles, and **remote** delivery, see
-> [guide-components.md](guide-components.md) — the two coexist (an installed entry point is one
+> [08-components.md](08-components.md) — the two coexist (an installed entry point is one
 > delivery mode of a component).
 
 | You built… | Interface | Entry-point group | Consumers load it with | Runtime resolves it via |
@@ -18,7 +18,7 @@ package deliberately (`pip install your-pkg`) and resolves your component **by n
 | a **verification method** | `OversightPolicy` | `dcp.oversight_policies` | `plugins.load_oversight_policy(name)` | `oversight=…` |
 | an **agent** | `ModelProvider` | `dcp.providers` | `plugins.load_model_provider(name)` | `ModelBinding(provider=name)` |
 
-Authoring each interface is covered in [guide-extending.md](guide-extending.md); this guide is about
+Authoring each interface is covered in [05-extending.md](05-extending.md); this guide is about
 **packaging and distributing** what you built. A complete package with one of each lives in
 [`../examples/plugin-example/`](../examples/plugin-example/).
 
@@ -71,7 +71,7 @@ Server().register_template(template)
 ```
 
 Tips: give it a stable `template_id` / `version` (templates are immutable per `(id, version)`), seat
-at least one human, and set `human_policy_defaults`. See [guide-templates.md](guide-templates.md).
+at least one human, and set `human_policy_defaults`. See [03-templates.md](03-templates.md).
 
 ## 2. Share a custom orchestrator
 
@@ -164,6 +164,6 @@ Copy it as the skeleton for your own DCP components.
 
 ---
 
-- [guide-extending.md](guide-extending.md) — how to *author* each of the four interfaces.
-- [guide-templates.md](guide-templates.md) — authoring and adapting templates.
-- [api-reference.md](api-reference.md#plugins) — the `dcp.plugins` surface and loaders.
+- [05-extending.md](05-extending.md) — how to *author* each of the four interfaces.
+- [03-templates.md](03-templates.md) — authoring and adapting templates.
+- [10-api-reference.md](10-api-reference.md#plugins) — the `dcp.plugins` surface and loaders.

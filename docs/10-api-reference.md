@@ -1,9 +1,7 @@
 # API reference
 
-The curated public surface of `dcp`. Everything here is importable from the top-level package
-(`from dcp import Server`) unless noted. Submodules (`dcp.schema`, `dcp.orchestration`, …) hold the
-full detail. Signatures are shown in a simplified form; the Pydantic models in `dcp.schema` are the
-authoritative contract (SPEC §4).
+The curated public surface of `dcp`. Everything here is importable from the top-level package (`from dcp import Server`) unless noted. 
+Submodules (`dcp.schema`, `dcp.orchestration`, …) hold the full detail. Signatures are shown in a simplified form; the Pydantic models in `dcp.schema` are the authoritative contract (SPEC §4).
 
 ```python
 import dcp
@@ -86,7 +84,7 @@ orchestrator.address_open_mic(input_id, addressed_by)
 ControlPolicy         # Protocol: async decide(ctx: DialogueContext) -> OrchestratorAction
 PlanPolicy()          # emergent: ask the model for the next action (default in plan mode)
 FlowPolicy()          # deterministic: follow the template's flow graph (default in flow mode)
-# Supply your own via control_policy=... on Orchestrator or Server.run. See guide-extending.md.
+# Supply your own via control_policy=... on Orchestrator or Server.run. See 05-extending.md.
 
 DialogueContext       # read-only, log-derived view passed to a policy:
                       #   instance_id, goal, topic, termination_condition, max_turns, roles,
@@ -152,7 +150,7 @@ render_timeline(store, instance_id) -> str     # transcript interleaved with con
 
 ## Evaluation  (`dcp.evaluation`)
 
-Benchmark orchestrators / oversight policies (see [guide-eval.md](guide-eval.md)).
+Benchmark orchestrators / oversight policies (see [06-evaluation.md](06-evaluation.md)).
 
 ```python
 Scenario(name, template, cast, participants, *, agent_providers={}, human_gateway=None,
@@ -200,7 +198,7 @@ await generator.generate(query, *, constraints=None) -> DialogueTemplate   # a d
 
 ## Presets  (`dcp.presets`)
 
-Ready-to-use `DialogueTemplate` factories (see [guide-templates.md](guide-templates.md)).
+Ready-to-use `DialogueTemplate` factories (see [03-templates.md](03-templates.md)).
 
 ```python
 list_presets() -> list[str]                 # names
@@ -210,8 +208,8 @@ get_preset(name) -> DialogueTemplate        # a fresh template (RegistryError if
 
 ## Plugins  (`dcp.plugins`)
 
-Discover and load shareable components (control policies / oversight / templates / providers)
-contributed by installed packages via entry points. See [guide-sharing.md](guide-sharing.md).
+Discover and load shareable components (control policies / oversight / templates / providers) contributed by installed packages via entry points. 
+See [07-sharing.md](07-sharing.md).
 
 ```python
 GROUP_CONTROL_POLICIES = "dcp.control_policies"
@@ -227,8 +225,7 @@ load_model_provider(name) -> object                # a ModelProvider class/facto
 load_template(name) -> DialogueTemplate            # resolves an instance or a 0-arg factory
 ```
 
-A `dcp.providers` plugin is resolved by name inside `build_provider`, so
-`ModelBinding(provider="<name>")` builds it; a built-in provider name always takes precedence.
+A `dcp.providers` plugin is resolved by name inside `build_provider`, so `ModelBinding(provider="<name>")` builds it; a built-in provider name always takes precedence.
 
 ## Config & errors
 

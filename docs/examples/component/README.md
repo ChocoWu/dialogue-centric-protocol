@@ -1,8 +1,6 @@
 # Runnable component example — one component, two delivery modes
 
-A complete, key-free DCP **component**: a model-free round-robin orchestrator, described by a
-manifest and run two ways — **local** (resolve → materialize) and **remote** (serve → connect) — from
-the *same* [`dcp-component.json`](dcp-component.json). See [../../guide-components.md](../../guide-components.md).
+A complete, key-free DCP **component**: a model-free round-robin orchestrator, described by a manifest and run two ways — **local** (resolve → materialize) and **remote** (serve → connect) — from the *same* [`dcp-component.json`](dcp-component.json). See [../../08-components.md](../../08-components.md).
 
 ## Files
 
@@ -29,15 +27,11 @@ status: done  (turns: 2)
   critic: 'Northstar' is clear and low-risk. +1.
 ```
 
-The only difference is *how the orchestrator was obtained* — materialized from local code, or
-connected to a running server. That's the point: a component is portable across delivery modes.
+The only difference is *how the orchestrator was obtained* — materialized from local code, or connected to a running server. 
+That's the point: a component is portable across delivery modes.
 
 ## Notes
 
-- **No install needed.** The scripts put this directory on `sys.path`, so the component's module is
-  importable — `provision` is a no-op and `materialize` just imports the entrypoint. (`inspect` still
-  *lists* the `pip install` it would run for a real consumer.)
+- **No install needed.** The scripts put this directory on `sys.path`, so the component's module is importable — `provision` is a no-op and `materialize` just imports the entrypoint. (`inspect` still *lists* the `pip install` it would run for a real consumer.)
 - **JSON manifest** so it runs with no extra; the same shape works as YAML with `pip install 'dcp[yaml]'`.
-- **`run_remote.py` needs a free port** (`127.0.0.1:8123`). The wire contract is the *projected
-  payload* — note `round_robin.decide(payload)` reads a dict, while `RoundRobinPolicy.decide(ctx)`
-  reads a `DialogueContext`.
+- **`run_remote.py` needs a free port** (`127.0.0.1:8123`). The wire contract is the *projected payload* — note `round_robin.decide(payload)` reads a dict, while `RoundRobinPolicy.decide(ctx)` reads a `DialogueContext`.

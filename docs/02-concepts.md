@@ -1,21 +1,15 @@
 # Concepts
 
-This is the mental model behind the SDK. The normative source is [`SPEC.md`](SPEC.md); this
-guide is the readable companion. Section references (§) point into the spec.
+This is the mental model behind the SDK. The normative source is [`SPEC.md`](../SPEC.md); this guide is the readable companion. Section references (§) point into the spec.
 
 ## The core idea
 
-A DCP dialogue is a **single serialized transcript** that many participants — agents *and* humans —
-contribute to one turn at a time, under the control of an **orchestrator** that is *not* a
-participant. The orchestrator does two jobs at once (§1.7):
+A DCP dialogue is a **single serialized transcript** that many participants — agents *and* humans — contribute to one turn at a time, under the control of an **orchestrator** that is *not* a participant. The orchestrator does two jobs at once (§1.7):
 
-- **Control** — decide who speaks next, inject context, route for revision/verification, open gates,
-  and stop.
-- **Oversight** — verify each turn *before* it happens (is this speaker ready?) and *after* (is the
-  output good?), and act on the result.
+- **Control** — decide who speaks next, inject context, route for revision/verification, open gates, and stop.
+- **Oversight** — verify each turn *before* it happens (is this speaker ready?) and *after* (is the output good?), and act on the result.
 
-Everything that happens is recorded as an append-only log; the dialogue's state is a deterministic
-replay of that log.
+Everything that happens is recorded as an append-only log; the dialogue's state is a deterministic replay of that log.
 
 ## Entities
 
@@ -29,9 +23,8 @@ replay of that log.
 | **Message** (§1.8) | A finalized contribution to the transcript. Append-only, immutable. | — |
 | **Event** (§1.9) | A record that *something happened* (a control decision, a state transition, a participation signal). | — |
 
-**Template vs Instance** is the key split (decision D1): you author and register a *template*, then
-create many *instances* from it. **Role vs Participant** is the other: a role is a seat in the
-script; a participant is a real registered identity **cast into** a role for one instance.
+**Template vs Instance** is the key split (decision D1): you author and register a *template*, then create many *instances* from it. 
+**Role vs Participant** is the other: a role is a seat in the script; a participant is a real registered identity **cast into** a role for one instance.
 
 ## The five layers (§3)
 
@@ -45,23 +38,19 @@ DCP is defined abstract-model-first, transport-last. Each layer maps to a Python
 | **4. Registry & Hosting** (§3.4) | Template/participant catalogs, instantiate/join/restore, auth | `dcp.registry` |
 | **5. Delivery** (§3.5) | How records reach clients (HTTP/SSE here) — pluggable, non-semantic | `dcp.delivery` |
 
-Plus `dcp.provider` (the model edge) and `dcp.authoring` (template auto-generation). The semantic
-core never imports a transport; delivery is an adapter.
+Plus `dcp.provider` (the model edge) and `dcp.authoring` (template auto-generation). 
+The semantic core never imports a transport; delivery is an adapter.
 
 ## The event log is the source of truth (D3)
 
-An instance holds **no authoritative state that isn't reconstructable from its log.** `restore()`
-replays the ordered `messages + events` into a `DialogueInstance` — deriving `status`, `turn`,
-`roster`, open gates, pending inputs, and budget. The same replay path serves three needs:
+An instance holds **no authoritative state that isn't reconstructable from its log.** `restore()` replays the ordered `messages + events` into a `DialogueInstance` — deriving `status`, `turn`, `roster`, open gates, pending inputs, and budget. The same replay path serves three needs:
 
 - the orchestrator **rehydrating** to resume a dialogue (§2.9),
 - a **late joiner** catching up on the full history (§2.5),
 - **audit / evaluation** after the fact.
 
-An instance is **resumable** iff its status is non-terminal; `Orchestrator.run()` restores first and
-continues without re-emitting the bootstrap events. A run can also **suspend** on purpose (the
-`suspend` control action) — pausing without terminating so a later `run()` picks it up, which makes
-long-running, cross-session dialogues (e.g. awaiting a human who returns tomorrow) first-class.
+An instance is **resumable** iff its status is non-terminal; `Orchestrator.run()` restores first and continues without re-emitting the bootstrap events. 
+A run can also **suspend** on purpose (the `suspend` control action) — pausing without terminating so a later `run()` picks it up, which makes long-running, cross-session dialogues (e.g. awaiting a human who returns tomorrow) first-class.
 
 ## Lifecycle (§2)
 
@@ -70,8 +59,8 @@ author template → register → (optional auto-generate) → instantiate → ca
 → join / leave → turn orchestration → contribution → human intervention → restore/replay → terminate
 ```
 
-Each turn (§2.6) is serialized: at most one contribution. Asynchronous human inputs (optional
-enrichment, open-mic, gate replies) queue into `pending_inputs`; joins/leaves apply between turns.
+Each turn (§2.6) is serialized: at most one contribution. 
+Asynchronous human inputs (optional enrichment, open-mic, gate replies) queue into `pending_inputs`; joins/leaves apply between turns.
 
 ## Human participation (§2.8)
 
@@ -84,13 +73,12 @@ Humans are first-class. A role's `response_requirement` selects the mode:
 | Approval gate | `gate` | yes | `wait_window_seconds`, `on_timeout` |
 | Open mic | any `observe`-tier participant, if `template.allow_open_mic` | — | pending until addressed |
 
-A waited human that times out resolves per `on_timeout` (default `finalize_provisional`), so an
-unresponsive human never hangs the instance.
+A waited human that times out resolves per `on_timeout` (default `finalize_provisional`), so an unresponsive human never hangs the instance.
 
 ## The orchestrator's oversight loop (§1.7, D11)
 
-This is what makes a dialogue *controlled* rather than a free-for-all. Verification records are not
-audit decoration — the orchestrator **acts on them**:
+This is what makes a dialogue *controlled* rather than a free-for-all.
+Verification records are not audit decoration — the orchestrator **acts on them**:
 
 **Pre-action (speaker readiness).** Before a candidate speaks, a `PreActionVerification` scores
 `readiness`, `availability`, `capability_match`, `role_state`, `context_sufficiency`,
@@ -113,25 +101,18 @@ orchestrator performs the recovery (bounded by `max_recovery_attempts`):
 - `escalate_gate` → open a human approval gate
 - `stop` → terminate `done`
 
-Oversight is pluggable (`OversightPolicy`): `DefaultOversight` passes everything (the key-free happy
-path), `LlmOversight` asks the orchestrator's model for the records, and `ScriptedOversight` drives
-specific branches in tests.
+Oversight is pluggable (`OversightPolicy`): `DefaultOversight` passes everything (the key-free happy path), `LlmOversight` asks the orchestrator's model for the records, and `ScriptedOversight` drives specific branches in tests.
 
 ## Orchestration modes (§2.6)
 
-- **`plan`** — the orchestrator selects the next speaker freely (emergent). In the SDK it asks its
-  provider for a structured `OrchestratorAction`.
+- **`plan`** — the orchestrator selects the next speaker freely (emergent). In the SDK it asks its provider for a structured `OrchestratorAction`.
 - **`flow`** — the orchestrator follows the template's declared `flow` graph (`entry` + `edges`).
-  The graph is **non-linear** (branches and loops) and **guided**, not a rigid script: succession is
-  *constrained* to the graph's edges, deterministic where a role has a single outgoing edge and
-  model-chosen among the allowed roles at a branch. The declared flow is the *initial* order — the
-  oversight loop may adapt it at runtime (e.g. re-select an alternative when a candidate isn't ready).
+  The graph is **non-linear** (branches and loops) and **guided**, not a rigid script: succession is *constrained* to the graph's edges, deterministic where a role has a single outgoing edge and model-chosen among the allowed roles at a branch. 
+  The declared flow is the *initial* order — the oversight loop may adapt it at runtime (e.g. re-select an alternative when a candidate isn't ready).
 
 Who makes the decision each turn is a pluggable **`ControlPolicy`** — the orchestrator "brain."
-`PlanPolicy` (emergent) and `FlowPolicy` (guided) are the built-ins chosen by `mode`, but you can
-supply your own to `Orchestrator`/`Server.run`. *Policy proposes, runtime disposes:* the policy
-returns an `OrchestratorAction`, and the orchestrator still applies oversight, recovery, and
-termination around it. See [guide-extending.md](guide-extending.md).
+`PlanPolicy` (emergent) and `FlowPolicy` (guided) are the built-ins chosen by `mode`, but you can supply your own to `Orchestrator`/`Server.run`. 
+*Policy proposes, runtime disposes:* the policy returns an `OrchestratorAction`, and the orchestrator still applies oversight, recovery, and termination around it. See [05-extending.md](05-extending.md).
 
 ## Termination (§2.10)
 
@@ -141,19 +122,19 @@ Checked every turn in strict priority order:
 error > budget > stopped > provisional > done
 ```
 
-`done` requires the termination condition satisfied **and** no open gate. Every terminal status
-carries a reason and is emitted as `instance_terminated`.
+`done` requires the termination condition satisfied **and** no open gate. 
+Every terminal status carries a reason and is emitted as `instance_terminated`.
 
 ## Access & identity (§1.6, D5/D6)
 
 Each instance has one **owner** and per-participant **tiers**: `own` ⊃ `speak` ⊃ `observe`.
-**Visibility** is `public` / `unlisted` / `private` (default private). **Auth** resolves a bearer
-token to one `participant_id` via a pluggable `Authenticator`; an anonymous dev mode keeps the local
-hello-world key-free. Auth answers *who you are*; tiers answer *what you may do*. See
-[guide-hosting.md](guide-hosting.md).
+**Visibility** is `public` / `unlisted` / `private` (default private). 
+**Auth** resolves a bearer token to one `participant_id` via a pluggable `Authenticator`; an anonymous dev mode keeps the local hello-world key-free. 
+Auth answers *who you are*; tiers answer *what you may do*. See
+[04-hosting.md](04-hosting.md).
 
 ## Extension (§1.10)
 
-Extension is explicit and typed — never tolerate-unknown. Every entity has an open `metadata` map;
-new protocol surface ships under a MINOR version bump. Unknown top-level fields are rejected
-(`extra="forbid"` on every model); unknown `metadata` keys are preserved.
+Extension is explicit and typed — never tolerate-unknown. 
+Every entity has an open `metadata` map; new protocol surface ships under a MINOR version bump. 
+Unknown top-level fields are rejected (`extra="forbid"` on every model); unknown `metadata` keys are preserved.

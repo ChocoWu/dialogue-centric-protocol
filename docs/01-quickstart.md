@@ -1,8 +1,6 @@
 # Quickstart
 
-From zero to a running, overseen, multi-participant dialogue — first with no credentials, then with
-a real model, then over HTTP. Every snippet here is exercised by the test suite or the
-[`examples/`](examples/) scripts.
+From zero to a running, overseen, multi-participant dialogue — first with no credentials, then with a real model, then over HTTP. Every snippet here is exercised by the test suite or the [`examples/`](examples/) scripts.
 
 ## 1. Install (Python ≥ 3.11)
 
@@ -37,27 +35,20 @@ status: done  (turns: 3)
   founder: Approved — ship it.
 ```
 
-That run exercised the whole stack with **no API key**: a registered template, three participants
-(two agents + one human), an instance, orchestrated turns, an approval gate, and a terminal status —
-all persisted to an in-memory SQLite event log and replayed into the final `DialogueInstance`.
+That run exercised the whole stack with **no API key**: a registered template, three participants (two agents + one human), an instance, orchestrated turns, an approval gate, and a terminal status — all persisted to an in-memory SQLite event log and replayed into the final `DialogueInstance`.
 
 ### The shape of a DCP program
 
-1. **Author a template** — the reusable dialogue definition: roles, how each role responds
-   (`required` / `optional` / `gate`), termination policy, orchestration mode (`plan` or `flow`).
+1. **Author a template** — the reusable dialogue definition: roles, how each role responds (`required` / `optional` / `gate`), termination policy, orchestration mode (`plan` or `flow`).
 2. **Register** the template and the participants with a `Server`.
 3. **Instantiate** — create a runtime `DialogueInstance` from the template; the caller is its owner.
-4. **Run** — hand the orchestrator a `cast` (role → participant) and the model providers; it drives
-   and oversees the dialogue to a terminal status (`done` / `provisional` / `stopped` / `budget` /
-   `error`).
+4. **Run** — hand the orchestrator a `cast` (role → participant) and the model providers; it drives and oversees the dialogue to a terminal status (`done` / `provisional` / `stopped` / `budget` / `error`).
 
-See [concepts.md](concepts.md) for the full model.
+See [02-concepts.md](02-concepts.md) for the full model.
 
 ## 3. Run it with a real model
 
-`docs/examples/hello_dialogue.py` is the same dialogue, but the orchestrator and agents use a live
-provider (the founder's approval stays scripted so it's non-interactive). The example reads a local
-`.env` from the working directory (or your shell environment); copy the template and fill it in:
+`docs/examples/hello_dialogue.py` is the same dialogue, but the orchestrator and agents use a live provider (the founder's approval stays scripted so it's non-interactive). The example reads a local `.env` from the working directory (or your shell environment); copy the template and fill it in:
 
 ```bash
 cp sdk/.env.example .env         # then edit .env
@@ -70,30 +61,27 @@ cp sdk/.env.example .env         # then edit .env
 python docs/examples/hello_dialogue.py
 ```
 
-Now the orchestrator's model decides who speaks and when to stop (plan mode), and each agent's model
-writes its own contribution. Nothing else in your code changes — just drop the scripted
-`MockProvider`s and the `Server` builds real providers from the environment.
+Now the orchestrator's model decides who speaks and when to stop (plan mode), and each agent's model writes its own contribution. 
+Nothing else in your code changes — just drop the scripted `MockProvider`s and the `Server` builds real providers from the environment.
 
 ### Run it on an open / local model
 
 You don't need a hosted API. Two provider options run open-weights models:
 
-- **`local`** — talk to any **OpenAI-compatible server** (vLLM, Ollama, LM Studio, …). Point at it
-  with `DCP_BASE_URL`; no key needed. No extra install.
+- **`local`** — talk to any **OpenAI-compatible server** (vLLM, Ollama, LM Studio, …). Point at it with `DCP_BASE_URL`; no key needed. No extra install.
 
   ```bash
   DCP_MODEL_PROVIDER=local DCP_BASE_URL=http://localhost:11434/v1 DCP_MODEL=llama3.1
   ```
 
-- **`transformers`** — load and run the model **inside the Python process** with HuggingFace
-  `transformers` + `torch` (e.g. **Qwen3**). No server, no API, no key — but it needs the extra:
+- **`transformers`** — load and run the model **inside the Python process** with HuggingFace `transformers` + `torch` (e.g. **Qwen3**). No server, no API, no key — but it needs the extra:
 
   ```bash
   pip install -e "./sdk[transformers]"
   # then: DCP_MODEL_PROVIDER=transformers DCP_MODEL=Qwen/Qwen3-4B
   ```
 
-See the [api reference](api-reference.md#model-providers) for `LocalProvider` /
+See the [api reference](10-api-reference.md#model-providers) for `LocalProvider` /
 `TransformersProvider` if you'd rather construct them directly.
 
 Discover what a server can do at runtime:
@@ -132,12 +120,11 @@ GET  /instances/{id}/events                → SSE stream: replay history, then 
 POST /templates/generate                   → draft a template from a query (if enabled)
 ```
 
-See [guide-hosting.md](guide-hosting.md) for auth, access tiers, visibility, and auto-generation.
+See [04-hosting.md](04-hosting.md) for auth, access tiers, visibility, and auto-generation.
 
 ## 5. The `dcp` command line
 
-Installing the package puts a `dcp` command on your `PATH` — a quick way to introspect a server, the
-preset catalog, and installed plugins without writing any code.
+Installing the package puts a `dcp` command on your `PATH` — a quick way to introspect a server, the preset catalog, and installed plugins without writing any code.
 
 ```bash
 dcp --version                      # 0.2.0.dev0
@@ -147,8 +134,7 @@ dcp plugins                        # components contributed by installed package
 dcp serve --db sqlite:///./dcp.db  # run the HTTP + SSE server (host/port flags too)
 ```
 
-`dcp info` reads your environment, so it doubles as a config check — it shows which providers are
-configured (an API key present, `DCP_BASE_URL` set, or the `transformers` extra installed):
+`dcp info` reads your environment, so it doubles as a config check — it shows which providers are configured (an API key present, `DCP_BASE_URL` set, or the `transformers` extra installed):
 
 ```
 model providers:
@@ -159,8 +145,7 @@ model providers:
   mock         configured
 ```
 
-And once a dialogue has run, replay its transcript straight from the database — add `--timeline` to
-interleave the control decisions and oversight verdicts:
+And once a dialogue has run, replay its transcript straight from the database — add `--timeline` to interleave the control decisions and oversight verdicts:
 
 ```bash
 dcp show <instance-id> --db sqlite:///./dcp.db --timeline
@@ -168,16 +153,14 @@ dcp show <instance-id> --db sqlite:///./dcp.db --timeline
 
 ## Next steps
 
-- [concepts.md](concepts.md) — templates vs instances, roles vs participants, the five layers, and
-  how the orchestrator's oversight loop drives control.
-- [guide-templates.md](guide-templates.md) — start from a preset template and adapt it.
-- [guide-hosting.md](guide-hosting.md) — multi-user hosting: registration, joining, access control,
+**Read next:** [02-concepts.md](02-concepts.md) — templates vs. instances, roles vs. participants, the five layers, and how the orchestrator's oversight loop drives control. 
+Then pick a task from the [docs index](README.md):
+
+- [03-templates.md](03-templates.md) — start from a preset template and adapt it.
+- [04-hosting.md](04-hosting.md) — multi-user hosting: registration, joining, access control,
   bearer auth, HTTP/SSE, and query→template auto-generation.
-- [guide-extending.md](guide-extending.md) — author a custom orchestrator, oversight policy, agent,
-  or template.
-- [guide-sharing.md](guide-sharing.md) — package and distribute any of those as a `pip`-installable
-  plugin others resolve by name.
-- [guide-research-companion.md](guide-research-companion.md) — a full flagship MAS: custom
-  orchestrator + grounding oversight + human gate, end to end.
-- [api-reference.md](api-reference.md) — the curated public API.
-- [`../SPEC.md`](../SPEC.md) — the normative behavior (every acceptance criterion has a conformance test).
+- [05-extending.md](05-extending.md) — author a custom orchestrator, oversight policy, or agent.
+- [07-sharing.md](07-sharing.md) / [08-components.md](08-components.md) — distribute your
+  work as a plugin, or as a portable component you can run **locally or remotely**.
+- [09-research-companion.md](09-research-companion.md) — a full flagship MAS, end to end.
+- [10-api-reference.md](10-api-reference.md) · [`../SPEC.md`](../SPEC.md) — the public API and the normative spec.

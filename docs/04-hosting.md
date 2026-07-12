@@ -1,8 +1,7 @@
 # Guide: Hosting, access, and delivery
 
-DCP is server-hosted (decision D2): templates and participants are **registered**, instances are
-**addressable and joinable** by other users under access control. This guide covers the
-Registry & Hosting layer (§3.4) and the HTTP/SSE delivery binding (§3.5).
+DCP is server-hosted (decision D2): templates and participants are **registered**, instances are **addressable and joinable** by other users under access control. 
+This guide covers the Registry & Hosting layer (§3.4) and the HTTP/SSE delivery binding (§3.5).
 
 ## The Registry
 
@@ -25,8 +24,8 @@ reg.get_template("design-review", "1.0.0")
 reg.list_templates()
 ```
 
-To publish a change, bump the `version`. This guarantees an instance's `template_ref` always resolves
-to exactly the definition it was created from.
+To publish a change, bump the `version`. 
+This guarantees an instance's `template_ref` always resolves to exactly the definition it was created from.
 
 ### Participants (§1.5, D4)
 
@@ -45,8 +44,7 @@ reg.list_instances(caller="@alice")             # visibility-filtered (see below
 reg.restore(inst.instance_id)                   # full-replay restore (D3)
 ```
 
-`instantiate` creates the instance in status `created`, sets the caller as **owner**, and seats the
-owner at the `own` tier.
+`instantiate` creates the instance in status `created`, sets the caller as **owner**, and seats the owner at the `own` tier.
 
 ## Access control (§1.6, D5)
 
@@ -75,13 +73,12 @@ joined = reg.join(inst.instance_id, participant_id="@bob")   # returns the full 
 reg.leave(inst.instance_id, participant_id="@bob")
 ```
 
-`join` triggers a restore so the joiner receives the full history to date (§2.5). `list_instances`
-returns only instances that are non-`private`, or that the `caller` owns / has a grant on.
+`join` triggers a restore so the joiner receives the full history to date (§2.5). `list_instances` returns only instances that are non-`private`, or that the `caller` owns / has a grant on.
 
 ## Authentication (§1.6, D6)
 
-Auth resolves a **bearer token → one `participant_id`** through a pluggable `Authenticator`. Auth
-answers *who you are*; tiers answer *what you may do*.
+Auth resolves a **bearer token → one `participant_id`** through a pluggable `Authenticator`. 
+Auth answers *who you are*; tiers answer *what you may do*.
 
 ```python
 from dcp import Registry, SqlStore, SimpleTokenAuthenticator, AnonymousAuthenticator
@@ -114,8 +111,7 @@ info.capabilities.auto_generate         # bool
 
 ## Auto-generation: query → draft template (§2.2, D10)
 
-Auto-generation is a standalone, model-backed step (not an orchestrator action). Wire a
-`TemplateGenerator` into the Registry to enable it:
+Auto-generation is a standalone, model-backed step (not an orchestrator action). Wire a `TemplateGenerator` into the Registry to enable it:
 
 ```python
 from dcp import Registry, SqlStore, TemplateGenerator, build_provider
@@ -130,14 +126,12 @@ draft = await reg.generate_template("A debate between an optimist and a skeptic 
 reg.register_template(draft)
 ```
 
-Without a generator, `generate_template` raises a capability error and the HTTP endpoint returns
-`501`. The pipeline is always *query → draft → (edit) → register → instantiate → run* — the draft is
-reviewable by default.
+Without a generator, `generate_template` raises a capability error and the HTTP endpoint returns `501`. 
+The pipeline is always *query → draft → (edit) → register → instantiate → run* — the draft is reviewable by default.
 
 ## Delivery: HTTP + SSE (§3.5)
 
-The semantic core never depends on a transport. `build_app(registry)` exposes the Registry as a
-Starlette REST + Server-Sent-Events app:
+The semantic core never depends on a transport. `build_app(registry)` exposes the Registry as a Starlette REST + Server-Sent-Events app:
 
 ```python
 from dcp import Registry, SqlStore, build_app
@@ -165,15 +159,12 @@ Errors map to HTTP: `409` (immutability conflict), `403` (access denied), `404` 
 
 ### SSE: replay-then-tail (D3)
 
-A subscriber to `GET /instances/{id}/events` first receives every event already in the log, in order,
-then continues receiving new events as they are appended — the same one-mechanism restore that serves
-orchestrator resume and late joiners. Pass `?tail=false` to get a finite stream that ends once caught
-up (used in tests).
+A subscriber to `GET /instances/{id}/events` first receives every event already in the log, in order, then continues receiving new events as they are appended — the same one-mechanism restore that serves orchestrator resume and late joiners. 
+Pass `?tail=false` to get a finite stream that ends once caught up (used in tests).
 
 ## Running a dialogue: the `Server` facade
 
-`Server` wires a store, a registry, and providers behind one object, and adds a `run`/resume entry
-point that builds the orchestrator for you:
+`Server` wires a store, a registry, and providers behind one object, and adds a `run`/resume entry point that builds the orchestrator for you:
 
 ```python
 from dcp import Server
@@ -190,6 +181,10 @@ result = await server.run(
 )
 ```
 
-`Server.run` derives each agent's provider from its `model_binding` (else the orchestrator default
-from the environment), and **resumes** automatically if the instance is already partway through.
+`Server.run` derives each agent's provider from its `model_binding` (else the orchestrator default from the environment), and **resumes** automatically if the instance is already partway through.
 Pass `orchestrator_provider` / `agent_providers` to override (e.g. `MockProvider` for tests).
+
+---
+
+**Next:** [05-extending.md](05-extending.md) to customize orchestration/oversight, or [08-components.md](08-components.md) to host a component others connect to remotely. ·
+[All docs](README.md)

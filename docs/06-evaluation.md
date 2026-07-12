@@ -1,18 +1,14 @@
 # Guide: Evaluating orchestrators & oversight
 
-DCP is a place to *compare* dialogue-control and verification approaches, not just run them. Because
-every decision is recorded in the append-only log, the log **is** the ground truth — so you can score
-and rank a `ControlPolicy` or an `OversightPolicy` across a set of scenarios. That's what
-`dcp.evaluation` is for.
+DCP is a place to *compare* dialogue-control and verification approaches, not just run them. 
+Because every decision is recorded in the append-only log, the log **is** the ground truth — so you can score and rank a `ControlPolicy` or an `OversightPolicy` across a set of scenarios. 
+That's what `dcp.evaluation` is for.
 
 ## The shape
 
-- A **`Scenario`** is a reproducible dialogue with everything fixed *except* the component under test
-  (template, cast, participants, scripted agent providers, optional human gateway, optional success
-  `scorer`).
+- A **`Scenario`** is a reproducible dialogue with everything fixed *except* the component under test (template, cast, participants, scripted agent providers, optional human gateway, optional success `scorer`).
 - A **`Candidate`** is a named thing to evaluate — a `control_policy` and/or an `oversight` policy.
-- **`run_matrix`** runs every (candidate × scenario) and reads **metrics** from each finished
-  instance; **`render_report`** prints a comparison.
+- **`run_matrix`** runs every (candidate × scenario) and reads **metrics** from each finished instance; **`render_report`** prints a comparison.
 
 Use scripted `MockProvider`s so runs are deterministic and CI-friendly.
 
@@ -58,8 +54,8 @@ Built-in (`DEFAULT_METRICS`), all read from the log:
 | `escalations` | post-action gate escalations |
 | `oversight_pass_rate` | fraction of post-action verdicts that were `pass` |
 
-Plus a per-run **`success`** — your `Scenario.scorer(inst)` if provided, else "reached `done`". Add
-your own metric with `Metric(name, fn=lambda inst: ...)` and pass a custom list to `run_matrix`.
+Plus a per-run **`success`** — your `Scenario.scorer(inst)` if provided, else "reached `done`". 
+Add your own metric with `Metric(name, fn=lambda inst: ...)` and pass a custom list to `run_matrix`.
 
 ## Evaluating oversight (not just orchestrators)
 
@@ -77,8 +73,7 @@ results = await run_matrix(scenario_list, [
 
 ## Why this matters
 
-A researcher building a "powerful orchestrator" can now *measure* it against baselines on shared
-scenarios, deterministically — DCP as a benchmark, not just a runtime. A crashing candidate is
-recorded as `status="error"` rather than aborting the matrix, so a whole panel runs to completion.
+A researcher building a "powerful orchestrator" can now *measure* it against baselines on shared scenarios, deterministically — DCP as a benchmark, not just a runtime. 
+A crashing candidate is recorded as `status="error"` rather than aborting the matrix, so a whole panel runs to completion.
 
-See [guide-extending.md](guide-extending.md) to write the policies you evaluate here.
+See [05-extending.md](05-extending.md) to write the policies you evaluate here.
