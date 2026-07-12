@@ -261,9 +261,16 @@ class Orchestrator:
     # --- control actions (SPEC §1.7; D11) --------------------------------------------
     def _resolve_role(self, role_id: str | None) -> Role:
         role = self._roles.get(role_id or "")
-        if role is None:
-            raise OrchestrationError(f"select_speaker for unknown role {role_id!r}")
-        return role
+        if role is not None:
+            return role
+        # A plan-mode model may return a role's display name or a case variant instead of its exact
+        # id (e.g. "Proposer" for "proposer"). Tolerate that before failing — match id, then name.
+        if role_id:
+            want = role_id.strip().casefold()
+            for r in self._roles.values():
+                if r.role_id.casefold() == want or r.name.casefold() == want:
+                    return r
+        raise OrchestrationError(f"select_speaker for unknown role {role_id!r}")
 
     def _inject_context(self, role: Role, issues_text: str) -> None:
         """Recovery: add the missing context the pre-check flagged, then the candidate retries."""

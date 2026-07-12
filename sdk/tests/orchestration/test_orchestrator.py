@@ -140,6 +140,27 @@ async def test_instance_goal_override_reaches_agent_instructions() -> None:
     assert "Generic pattern goal." not in agent.instructions          # template goal overridden
 
 
+async def test_resolve_role_tolerates_name_or_case_variant() -> None:
+    # A plan-mode model often returns the role's display name ("Proposer") or a case variant instead
+    # of the exact id ("proposer"); the orchestrator resolves it rather than crashing.
+    store = _store_with_instance()
+    tmpl = s.DialogueTemplate(
+        template_id="t", version="1.0.0", title="T",
+        termination_policy=s.TerminationPolicy(condition="done"),
+        roles=[s.Role(role_id="proposer", name="Proposer", kind=s.RoleKind.AGENT,
+                      response_requirement=s.ResponseRequirement.REQUIRED)])
+    orch = Orchestrator(
+        store=store, template=tmpl, instance_id="dlg", cast={"proposer": "proposer"},
+        participants={"proposer": s.Participant(
+            participant_id="proposer", kind=s.RoleKind.AGENT, display_name="P")},
+        provider=MockProvider(structured_queue=[
+            {"action": "select_speaker", "target_role_id": "Proposer"},   # display name, not id
+            {"action": "stop", "status": "done"}]),
+        agent_providers={"proposer": MockProvider(texts=["hi"])})
+    inst = await orch.run()
+    assert [m.role_id for m in inst.messages] == ["proposer"]   # resolved despite the name variant
+
+
 async def test_instance_termination_override_caps_turns() -> None:
     # Template has no turn cap; the per-run override caps it at 1, so the run stops after one turn.
     store = _store_with_instance()
