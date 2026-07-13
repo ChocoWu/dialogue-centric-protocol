@@ -121,6 +121,32 @@ for p in info.model_providers:
     print(p.provider, "configured" if p.configured else "no key")
 ```
 
+### Mix providers in one dialogue
+
+Provider selection is **per role**, so a single dialogue can run different models side by side. The
+runnable [`hello_dialogue_qwen.py`](examples/hello_dialogue_qwen.py) shows all three mechanisms at
+once:
+
+- **Orchestrator** → a **local Qwen** model, passed as an explicit instance:
+  ```python
+  from dcp.provider import TransformersProvider
+  orchestrator_provider = TransformersProvider("Qwen/Qwen3-4B-Instruct-2507",
+                                               enable_thinking=False, max_new_tokens=512)
+  await server.run("demo", cast=..., orchestrator_provider=orchestrator_provider)
+  ```
+- **proposer / critic** → **OpenAI**, bound declaratively when the participant is registered:
+  ```python
+  server.register_participant(s.Participant(
+      participant_id="proposer", kind=s.RoleKind.AGENT, display_name="Proposer",
+      model_binding=s.ModelBinding(provider="openai", model="gpt-4o-mini")))
+  ```
+- **founder** → a **human** role, no model binding.
+
+So `orchestrator_provider=` (an instance) beats a participant's `model_binding` beats the `.env`
+default — the same precedence the orchestrator uses to resolve every role. Running it needs the
+`transformers` extra (for local Qwen) **and** an `OPENAI_API_KEY` (for the two agents). The full
+provider taxonomy and override rules are in [05 · Participant](05-participant.md#provider-taxonomy).
+
 ## 4. Serve it over HTTP + SSE
 
 The same `Registry` can be exposed as a REST + Server-Sent-Events API (Starlette/uvicorn):

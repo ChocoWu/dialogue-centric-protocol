@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Explicitly bind orchestrator + agents to a local Qwen TransformersProvider.
+"""Mix providers in one dialogue — a local Qwen orchestrator with OpenAI agents.
 
-This script demonstrates the local / in-process Qwen setup you asked for:
-- orchestrator uses a local Qwen model via TransformersProvider
-- agents also use local Qwen models via TransformersProvider
+This demonstrates that provider selection is per-role (see docs/01-quickstart.md and 05-participant):
+- orchestrator → a local Qwen model, in-process via TransformersProvider (passed as an instance)
+- proposer / critic → OpenAI, bound declaratively per participant via `model_binding` (D8)
+- founder → a human role, no model binding
 
 Requirements:
-  pip install -e "./sdk[transformers]"
+  pip install -e "./sdk[transformers]"   # for the local Qwen orchestrator
+  OPENAI_API_KEY in the environment      # for the two OpenAI agents
 
-This will download the model the first time it runs, so it may take a while.
+The first run downloads the Qwen weights, so it may take a while.
 
 Run from the repo root:
   python docs/examples/hello_dialogue_qwen.py
@@ -17,11 +19,6 @@ Run from the repo root:
 from __future__ import annotations
 
 import asyncio
-import sys
-from pathlib import Path
-
-# Add sdk to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "sdk" / "src"))
 
 from dcp import Server, load_dotenv
 from dcp import schema as s
@@ -29,12 +26,15 @@ from dcp.orchestration import HumanReply, ScriptedHumanGateway
 from dcp.provider import TransformersProvider
 
 
+# Template = the reusable *pattern*: a generic title/goal/termination that fit any design review,
+# not one task. The run-specific objective and task details are supplied per-instance (see the
+# `goal=` / `termination=` / `brief=` on instantiate below).
 TEMPLATE = s.DialogueTemplate(
     template_id="design-review",
     version="1.0.0",
-    title="Product-name design review",
-    goal="Agree on a product name the founder approves.",
-    termination_policy=s.TerminationPolicy(condition="founder approves", max_turns=6),
+    title="Design review",
+    goal="Converge on a proposal the designated approver signs off on.",
+    termination_policy=s.TerminationPolicy(condition="the approver approves", max_turns=8),
     roles=[
         s.Role(
             role_id="proposer",
@@ -86,7 +86,9 @@ async def main() -> None:
         "critic": s.ModelBinding(provider="openai", model="gpt-4o-mini"),
     }
 
-    server = Server(database_url="sqlite:///:memory:")
+    server = Server(database_url="sqlite:///:memory:")  
+    # memory DB for demo; use a file for persistent storage, e.g. sqlite:///./dcp.db
+    # dcp show <instance_id> --db sqlite:///./dcp.db --timeline
     server.register_template(TEMPLATE)
 
     for pid, kind in (("proposer", s.RoleKind.AGENT), ("critic", s.RoleKind.AGENT), ("founder", s.RoleKind.HUMAN)):
@@ -99,10 +101,18 @@ async def main() -> None:
             )
         )
 
+    # Aim the generic template at *this* run: goal + termination override the template's defaults,
+    # and brief carries the task specifics — all reach the orchestrator and every agent.
     server.instantiate(
         s.TemplateRef(template_id="design-review", version="1.0.0"),
         owner="founder",
         instance_id="demo-qwen",
+        goal="Agree on a product name the founder approves.",
+        termination=s.TerminationPolicy(condition="the founder approves the name", max_turns=6),
+        brief={
+            "product": "a B2B analytics platform for fintech CFOs",
+            "constraints": ["one or two words", "avoid the '-ly' suffix", "low trademark risk"],
+        },
     )
 
     result = await server.run(

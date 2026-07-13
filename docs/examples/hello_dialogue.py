@@ -70,7 +70,7 @@ async def main() -> None:
     
     # Step 2: Create server
     print("2. Creating Server...")
-    server = Server(database_url="sqlite:///:memory:")
+    server = Server(database_url="sqlite:///:memory:")  # memory DB for demo; use a file for persistent storage, e.g. sqlite:///./dcp.db
     
     # Step 3: Check provider
     print("3. Checking provider configuration...")
