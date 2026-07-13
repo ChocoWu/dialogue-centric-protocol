@@ -102,16 +102,24 @@ Runnable copies live in [`docs/examples/`](docs/examples/): `hello_dialogue_mock
 
 ## Docs
 
-**Start at [docs/README.md](docs/README.md)** — a guided learning path (quickstart → concepts → build-by-task → reference). At a glance:
+**Start at [docs/README.md](docs/README.md)** — a guided path from zero to building your own system. The reading order:
 
-| Doc | What |
-|-----|------|
-| [docs/01-quickstart.md](docs/01-quickstart.md) | install → mock hello-world → real model → HTTP server → CLI |
-| [docs/02-concepts.md](docs/02-concepts.md) | the entity model, five layers, lifecycle, oversight/control loop |
-| [docs/03-templates.md](docs/03-templates.md) · [04-hosting.md](docs/04-hosting.md) · [05-extending.md](docs/05-extending.md) · [06-evaluation.md](docs/06-evaluation.md) | build-by-task: adapt templates · host multi-user · custom orchestrator/oversight/agent · benchmark |
-| [docs/07-sharing.md](docs/07-sharing.md) · [08-components.md](docs/08-components.md) | distribute your work — quick plugins, or portable **local & remote** components |
-| [docs/09-research-companion.md](docs/09-research-companion.md) | flagship: a Student Research Companion MAS, end-to-end |
-| [docs/10-api-reference.md](docs/10-api-reference.md) · [SPEC.md](SPEC.md) · [bindings/](bindings/) | the public API · the normative spec · the remote wire protocol |
+| # | Doc | What |
+|---|-----|------|
+| 1 | [Quick Start](docs/01-quickstart.md) | install → mock hello-world → real model → HTTP server → CLI |
+| 2 | [Design Overview](docs/02-design-overview.md) | the whole map: entities, five layers, runtime flow, content-vs-structure |
+| 3 | [Templates & Instances](docs/03-dialogue-template.md) | the reusable pattern vs. the per-run task; fields; presets; lifecycle |
+| 4 | [Orchestrator](docs/04-orchestrator.md) | the turn loop, control policies (plan/flow/custom), oversight |
+| 5 | [Participant](docs/05-participant.md) | humans and agents; the provider taxonomy; per-agent model binding |
+| 6 | [Hosting & Delivery](docs/06-hosting-delivery.md) | multi-user server: registry, access, auth, HTTP+SSE, CLI, deployment |
+| 7 | [Extending & Sharing](docs/07-extending-sharing.md) | ship a policy/agent/template as a plugin or local/remote component |
+| 8 | [Evaluation](docs/08-evaluation.md) | benchmark orchestrators & oversight policies |
+| 9 | [API Reference](docs/09-api-reference.md) | the curated public API + HTTP endpoint table |
+| 10 | [Troubleshooting / FAQ](docs/10-troubleshooting.md) | symptom → cause → fix for the common gotchas |
+
+Off the main path: a full [worked example](docs/walkthrough-research-companion.md), the
+[components reference](docs/components-reference.md), the normative [SPEC.md](SPEC.md), and the remote
+wire [bindings/](bindings/).
 
 ## CLI
 
@@ -124,7 +132,7 @@ dcp plugins                    # installed third-party components (entry points)
 dcp serve --db sqlite:///./dcp.db --port 8000   # run the HTTP + SSE server
 dcp show <instance_id> --timeline               # transcript + control decisions + oversight verdicts
 
-# components (see docs/08-components.md):
+# components (see docs/components-reference.md):
 dcp inspect <ref>              # resolve a component; print its side-effect-free plan
 dcp install <ref> --yes        # provision it into this environment (pip + artifacts)
 dcp connect <ref> --token T    # verify a remote component endpoint and print its descriptor

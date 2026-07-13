@@ -51,6 +51,19 @@ status: done  (turns: 3)
 
 That run exercised the whole stack with **no API key**: a registered template, three participants (two agents + one human), an instance, orchestrated turns, an approval gate, and a terminal status — all persisted to an in-memory SQLite event log and replayed into the final `DialogueInstance`.
 
+### Reading the result — five words
+
+| Word | Meaning |
+|------|---------|
+| **template** | The reusable *pattern* — roles, flow, generic goal/termination. You register it once. |
+| **instance** | One *run* of a template, aimed at a task (its own `goal`/`termination`/`brief`). `status: done` etc. describe an instance. |
+| **turn** | One contribution to the transcript. `turns: 3` means three participants spoke. |
+| **status** | How the instance ended: `done` (goal met, no open gate) · `provisional` (a waited human timed out) · `stopped` (turn cap hit) · `budget` (token cap) · `error`. Priority: `error > budget > stopped > provisional > done`. |
+| **orchestrator** | The non-participant that drives *who speaks* and *whether each turn is OK*. Not shown in the transcript, but it ran every turn. |
+
+Full model in [02 · Design Overview](02-design-overview.md); the template/instance split in
+[03 · Templates & Instances](03-dialogue-template.md).
+
 ### The shape of a DCP program
 
 1. **Author a template** — the reusable dialogue definition: roles, how each role responds (`required` / `optional` / `gate`), termination policy, orchestration mode (`plan` or `flow`).
@@ -58,7 +71,7 @@ That run exercised the whole stack with **no API key**: a registered template, t
 3. **Instantiate** — create a runtime `DialogueInstance` from the template; the caller is its owner.
 4. **Run** — hand the orchestrator a `cast` (role → participant) and the model providers; it drives and oversees the dialogue to a terminal status (`done` / `provisional` / `stopped` / `budget` / `error`).
 
-See [02-concepts.md](02-concepts.md) for the full model.
+See [02-design-overview.md](02-design-overview.md) for the full model.
 
 ## 3. Run it with a real model
 
@@ -95,7 +108,7 @@ You don't need a hosted API. Two provider options run open-weights models:
   # then: DCP_MODEL_PROVIDER=transformers DCP_MODEL=Qwen/Qwen3-4B
   ```
 
-See the [api reference](10-api-reference.md#model-providers) for `LocalProvider` /
+See the [api reference](09-api-reference.md#model-providers) for `LocalProvider` /
 `TransformersProvider` if you'd rather construct them directly.
 
 Discover what a server can do at runtime:
@@ -134,7 +147,7 @@ GET  /instances/{id}/events                → SSE stream: replay history, then 
 POST /templates/generate                   → draft a template from a query (if enabled)
 ```
 
-See [04-hosting.md](04-hosting.md) for auth, access tiers, visibility, and auto-generation.
+See [06-hosting-delivery.md](06-hosting-delivery.md) for auth, access tiers, visibility, and auto-generation.
 
 ## 5. The `dcp` command line
 
@@ -167,13 +180,15 @@ dcp show <instance-id> --db sqlite:///./dcp.db --timeline
 
 ## Next steps
 
-**Read next:** 
-- [02-concepts.md](02-concepts.md) — templates vs. instances, roles vs. participants, the five layers, and how the orchestrator's oversight loop drives control. Then pick a task from the [docs index](README.md):
-- [03-templates.md](03-templates.md) — start from a preset template and adapt it.
-- [04-hosting.md](04-hosting.md) — multi-user hosting: registration, joining, access control,
-  bearer auth, HTTP/SSE, and query→template auto-generation.
-- [05-extending.md](05-extending.md) — author a custom orchestrator, oversight policy, or agent.
-- [07-sharing.md](07-sharing.md) / [08-components.md](08-components.md) — distribute your
-  work as a plugin, or as a portable component you can run **locally or remotely**.
-- [09-research-companion.md](09-research-companion.md) — a full flagship MAS, end to end.
-- [10-api-reference.md](10-api-reference.md) · [`../SPEC.md`](../SPEC.md) — the public API and the normative spec.
+**Read next**, in order:
+- [02 · Design Overview](02-design-overview.md) — the whole map: entities, five layers, the runtime flow, the content-vs-structure split.
+- [03 · Templates & Instances](03-dialogue-template.md) — the pattern vs. the run, field by field; presets; per-run `goal`/`termination`/`brief`.
+- [04 · Orchestrator](04-orchestrator.md) — the turn loop, control policies, oversight.
+- [05 · Participant](05-participant.md) — humans and agents; the provider taxonomy and per-agent model binding.
+
+**Then by task:**
+- [06 · Hosting & Delivery](06-hosting-delivery.md) — multi-user hosting: registration, joining, access control, auth, HTTP/SSE, the CLI, deployment.
+- [07 · Extending & Sharing](07-extending-sharing.md) — distribute a policy/agent/template as a plugin or a portable local/remote component.
+- [08 · Evaluation](08-evaluation.md) — benchmark orchestrators and oversight policies.
+- [Walkthrough: a Research Companion](walkthrough-research-companion.md) — a full flagship MAS, end to end.
+- [09 · API Reference](09-api-reference.md) · [10 · Troubleshooting](10-troubleshooting.md) · [`../SPEC.md`](../SPEC.md) — the public API, the FAQ, and the normative spec.

@@ -7,7 +7,7 @@ Runnable: [`examples/research_companion_mock.py`](examples/research_companion_mo
 
 ## The cast
 
-The [`research_companion`](03-templates.md) preset seats:
+The [`research_companion`](03-dialogue-template.md) preset seats:
 
 | Role | Kind | Job |
 |------|------|-----|
@@ -111,5 +111,5 @@ For live agents, set a provider in `.env` and run `research_companion.py`.
 ## Where to go next
 
 - Swap the fixed `ResearchWorkflowPolicy` for a model-driven one, or the preset's guided `flow`.
-- Add checks to the rubric (safety, completeness) — see [05-extending.md](05-extending.md).
-- Package your policy/template as a plugin so others can `pip install` it ([05-extending.md](05-extending.md#4-share-it--entry-points)).
+- Add checks to the rubric (safety, completeness) — see [07-extending-sharing.md](07-extending-sharing.md).
+- Package your policy/template as a plugin so others can `pip install` it ([07-extending-sharing.md](07-extending-sharing.md#4-share-it--entry-points)).

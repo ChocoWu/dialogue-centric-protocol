@@ -1,6 +1,6 @@
 # Runnable component example — one component, two delivery modes
 
-A complete, key-free DCP **component**: a model-free round-robin orchestrator, described by a manifest and run two ways — **local** (resolve → materialize) and **remote** (serve → connect) — from the *same* [`dcp-component.json`](dcp-component.json). See [../../08-components.md](../../08-components.md).
+A complete, key-free DCP **component**: a model-free round-robin orchestrator, described by a manifest and run two ways — **local** (resolve → materialize) and **remote** (serve → connect) — from the *same* [`dcp-component.json`](dcp-component.json). See [../../components-reference.md](../../components-reference.md).
 
 ## Files
 

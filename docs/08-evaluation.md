@@ -1,8 +1,15 @@
-# Guide: Evaluating orchestrators & oversight
+# Evaluation
+
+> This doc is about **measuring** a system, not understanding it. If you're still learning how DCP works, read [02–05](02-design-overview.md) first; come back here when you want to *compare* control/verification approaches and put numbers on them.
 
 DCP is a place to *compare* dialogue-control and verification approaches, not just run them. 
 Because every decision is recorded in the append-only log, the log **is** the ground truth — so you can score and rank a `ControlPolicy` or an `OversightPolicy` across a set of scenarios. 
 That's what `dcp.evaluation` is for.
+
+## What you can evaluate, on which dimensions
+
+- **Targets:** a **template**, a **control policy** (orchestrator), an **oversight policy**, or a **provider** — anything you can hold fixed while varying one axis.
+- **Dimensions:** *completion* (did it reach the goal?), *quality* (oversight pass rate), *safety* (escalations), *efficiency* (turns, revisions, recoveries), *determinism* (same inputs → same run, via scripted `MockProvider`s).
 
 ## The shape
 
@@ -14,7 +21,6 @@ Use scripted `MockProvider`s so runs are deterministic and CI-friendly.
 
 ```python
 from dcp.evaluation import Scenario, Candidate, run_matrix, render_report
-from dcp.orchestration import PlanPolicy
 from dcp.provider import MockProvider
 from dcp import schema as s
 
@@ -55,7 +61,7 @@ Built-in (`DEFAULT_METRICS`), all read from the log:
 | `oversight_pass_rate` | fraction of post-action verdicts that were `pass` |
 
 Plus a per-run **`success`** — your `Scenario.scorer(inst)` if provided, else "reached `done`". 
-Add your own metric with `Metric(name, fn=lambda inst: ...)` and pass a custom list to `run_matrix`.
+Add your own with `Metric(name, fn=lambda inst: ...)` and pass a custom list to `run_matrix`.
 
 ## Evaluating oversight (not just orchestrators)
 
@@ -76,4 +82,8 @@ results = await run_matrix(scenario_list, [
 A researcher building a "powerful orchestrator" can now *measure* it against baselines on shared scenarios, deterministically — DCP as a benchmark, not just a runtime. 
 A crashing candidate is recorded as `status="error"` rather than aborting the matrix, so a whole panel runs to completion.
 
-See [05-extending.md](05-extending.md) to write the policies you evaluate here.
+See [04 · Orchestrator](04-orchestrator.md) to write the policies you evaluate here, and [07 · Extending & Sharing](07-extending-sharing.md) to distribute them.
+
+---
+
+**Next:** [09 · API Reference](09-api-reference.md). · [All docs](README.md)

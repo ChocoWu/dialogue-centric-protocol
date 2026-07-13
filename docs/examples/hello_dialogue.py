@@ -43,6 +43,18 @@ TEMPLATE = s.DialogueTemplate(
                persona="You approve or reject the chosen name.",
                response_requirement=s.ResponseRequirement.GATE),
     ],
+    # Orchestration is part of the *template* (the pattern), not the per-run instance — unlike
+    # goal/termination/brief. This template declares no `flow`, so the mode defaults to `plan`: the
+    # orchestrator's model picks the next speaker each turn (emergent). The `flow` — the succession
+    # structure over these roles — belongs here alongside `roles` and `orchestration.mode`, because
+    # it describes how *this kind* of dialogue runs. To fix the order instead, declare it and switch
+    # to `flow` mode (both on the template):
+    #
+    #   orchestration=s.Orchestration(mode=s.OrchestrationMode.FLOW),
+    #   flow=s.Flow(entry="proposer", edges=[
+    #       s.Edge(from_role="proposer", to_role="critic"),
+    #       s.Edge(from_role="critic",   to_role="founder"),
+    #   ]),
 )
 
 

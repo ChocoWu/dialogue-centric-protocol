@@ -1,45 +1,48 @@
 # DCP documentation
 
-A learning path from zero to building your own dialogue-centric multi-agent system. 
-Read top to bottom the first time; jump by task after that.
+A guided path from zero to building your own dialogue-centric multi-agent system. Read the numbered
+docs in order the first time; jump by task after that.
 
-## 1 · Start here (≈15 min)
+## 1 · Understand & use
 
-1. **[01-quickstart.md](01-quickstart.md)** — install → a key-free hello-world → the same dialogue on a real model → serve it over HTTP → the `dcp` CLI. The fastest path to something running.
-2. **[02-concepts.md](02-concepts.md)** — the mental model behind the SDK: templates vs. instances, roles vs. participants, the five layers, the replayable event log, and the orchestrator's *control + oversight* loop. Read this once and the rest clicks.
+The core reading path — finish these five and you can build a system.
 
-## 2 · Build — pick a task
+| # | Doc | What you get |
+|---|-----|--------------|
+| 1 | **[Quick Start](01-quickstart.md)** | Install, then run three examples — key-free mock, real model, HTTP server. The fastest path to something running. |
+| 2 | **[Design Overview](02-design-overview.md)** | The whole map: entities, the five layers, the runtime flow, and the *content-vs-structure* split. Read once and the rest clicks. |
+| 3 | **[Templates & Instances](03-dialogue-template.md)** | The reusable *pattern* (template) vs. *this run* (instance): every field, the per-run `goal`/`termination`/`brief` overrides, how to create/use, lifecycle & replay. |
+| 4 | **[Orchestrator](04-orchestrator.md)** | How a dialogue is *driven and overseen*: the turn loop, control policies (plan/flow/custom), and oversight policies. |
+| 5 | **[Participant](05-participant.md)** | Who takes part: humans (join/gate/optional) and agents (the provider taxonomy, per-agent model binding, bring-your-own agent). |
 
-| I want to… | Guide |
-|------------|-------|
-| Start from a **preset template** and adapt it | [03-templates.md](03-templates.md) |
-| **Host a multi-user server** — registration, joining, access tiers, auth, HTTP+SSE | [04-hosting.md](04-hosting.md) |
-| Write a **custom orchestrator / oversight policy / agent** | [05-extending.md](05-extending.md) |
-| **Benchmark & compare** orchestrators or oversight policies | [06-evaluation.md](06-evaluation.md) |
-| **Share** what I built as a `pip`-installable plugin (quick, in-process) | [07-sharing.md](07-sharing.md) |
-| Package a **portable component** — local *or remote*, with model checkpoints & lockfiles | [08-components.md](08-components.md) |
+## 2 · Deploy & extend
 
-## 3 · Learn by example
+| # | Doc | What you get |
+|---|-----|--------------|
+| 6 | **[Hosting & Delivery](06-hosting-delivery.md)** | Turn it into a multi-user server: registry, access tiers, auth, HTTP+SSE routes, the `dcp` CLI, and deployment (SQLite/Postgres). |
+| 7 | **[Extending & Sharing](07-extending-sharing.md)** | Package what you build — a custom policy/oversight/provider/template — as a pip plugin or a portable **local / remote component**. |
 
-- **[09-research-companion.md](09-research-companion.md)** — a complete flagship MAS (a Student Research Companion), built end to end: custom orchestrator + grounding oversight + a human gate.
-- **[examples/](examples/)** — runnable, key-free scripts:
-  `hello_dialogue_mock.py` · `research_companion_mock.py` · `component/` (one component, run **local** *and* **remote**).
+## 3 · Evaluate & reference
 
-## 4 · Reference
+| # | Doc | What you get |
+|---|-----|--------------|
+| 8 | **[Evaluation](08-evaluation.md)** | *Measure* a system: targets, dimensions (completion/quality/safety/efficiency/determinism), and how to write & compare harnesses. |
+| 9 | **[API Reference](09-api-reference.md)** | The curated public API — core classes, methods, schema, config, the `dcp` CLI, and the HTTP endpoint table. |
 
-- **[10-api-reference.md](10-api-reference.md)** — the curated public API surface.
-- **[../SPEC.md](../SPEC.md)** — the normative behavioral specification.
-- **[../bindings/](../bindings/)** — the remote-component wire protocol (transport-independent core +
-  the HTTP/SSE mapping).
+## 4 · When you're stuck
+
+| # | Doc | What you get |
+|---|-----|--------------|
+| 10 | **[Troubleshooting / FAQ](10-troubleshooting.md)** | The common "why doesn't this work?" answers — each a symptom → cause → one-line fix. |
+
+## Worked example & deep dives (off the main path)
+
+- **[Walkthrough: a Student Research Companion](walkthrough-research-companion.md)** — a complete flagship MAS built end to end (custom orchestrator + grounding oversight + a human gate).
+- **[Components reference](components-reference.md)** — the full manifest / checkpoint / remote-delivery reference behind [Extending & Sharing](07-extending-sharing.md).
+- **[examples/](examples/)** — runnable, key-free scripts: `hello_dialogue_mock.py` · `research_companion_mock.py` · `component/` (one component, run **local** *and* **remote**).
+
+## Normative & release
+
+- **[../SPEC.md](../SPEC.md)** — the normative behavioral specification (the source of truth for behavior).
+- **[../bindings/](../bindings/)** — the remote-component wire protocol (transport-independent core + the HTTP/SSE mapping).
 - **[../CHANGELOG.md](../CHANGELOG.md)** — what's new.
-
----
-
-### "Sharing" vs. "components" — which guide?
-
-Two ways to distribute what you build; they **coexist**:
-
-- **[07-sharing.md](07-sharing.md)** — the quick in-process path: declare a Python **entry point**, `pip install`, resolve by name. Best for a policy/template you and your team use.
-- **[08-components.md](08-components.md)** — the portable path: a machine-readable **manifest** with pinned references, model checkpoints, dependency locking, and **remote** delivery. Best for publishing an open-weights orchestrator, or hosting an agent others connect to.
-
-An installed entry point is simply *one delivery mode* of a component — start with sharing, reach for components when you need checkpoints or remote hosting.
