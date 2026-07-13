@@ -37,8 +37,7 @@ An `invoke` request carries:
 - `invocation_id` — echoes the request.
 - `ok` — success flag.
 - `result` — the operation output on success (e.g. a serialized `OrchestratorAction`).
-- `error` — `{code, message}` on failure. Codes: `unknown_operation`, `unsupported_interface`,
-  `version_mismatch`, `bad_request`, `internal`.
+- `error` — `{code, message}` on failure. Codes: `unknown_operation`, `unsupported_interface`, `version_mismatch`, `bad_request`, `internal`.
 
 ## 4. Remote descriptor & verification (D20)
 
@@ -70,8 +69,7 @@ The manifest's `context_requirements` only *ask*. The **owner** builds the `Cont
 Full DialogueContext ──(owner ContextProjection)──▶ RemoteComponentContext ──serialize + audit──▶ remote
 ```
 
-- Fields are individually gated: `transcript` (full|summary|omit) and `roster`
-  (full|roles_only|omit) in v1. (Only knobs that actually project are exposed — no no-op fields.)
+- Fields are individually gated: `transcript` (full|summary|omit) and `roster`(full|roles_only|omit) in v1. (Only knobs that actually project are exposed — no no-op fields.)
 - What is **recorded** is owner-configurable: the projection *policy* (fields + a payload **digest** + byte size + destination + timestamp) is always recordable; full-payload retention is explicit and subject to the dialogue's privacy/retention policy.
 - Remoting a control policy or agent sends dialogue content beyond the owner's boundary — a privacy decision the owner makes, not the component author.
 
