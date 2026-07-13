@@ -133,6 +133,17 @@ result = await server.run("demo", cast={"proposer": "proposer", ...}, human_gate
 Package a template factory under a `dcp.templates` entry point so others `pip install` and `load_template("name")` it — or publish it as a portable component. 
 See [07 · Extending & Sharing](07-extending-sharing.md#share-a-template).
 
+## Runnable examples
+
+Each maps to a section above:
+
+| Example | Shows |
+|---------|-------|
+| [`template_create_preset.py`](examples/template_create_preset.py) | §4 — list the preset catalog and start a template from a preset |
+| [`template_create_generator.py`](examples/template_create_generator.py) | §4 — auto-generate a draft template from a query (needs a configured model) |
+| [`template_usage_register_run.py`](examples/template_usage_register_run.py) | §3/§5 — register → instantiate with per-run `goal`/`termination`/`brief` → run → restore |
+| [`template_create_plugin_share.py`](examples/template_create_plugin_share.py) | §4/§7 — load a shared template by name from a plugin (`pip install -e examples/plugin-example` first) |
+
 ---
 
 **Next:** [04 · Orchestrator](04-orchestrator.md) — how a template is *driven and overseen* into a finished dialogue. · [All docs](README.md)

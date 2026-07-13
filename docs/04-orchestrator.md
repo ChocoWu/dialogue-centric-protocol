@@ -129,6 +129,17 @@ A `ControlPolicy` or `OversightPolicy` ships like any component — declare a `d
 See [07 · Extending & Sharing](07-extending-sharing.md). 
 For a full custom orchestrator in a real system, see the [research-companion walkthrough](walkthrough-research-companion.md).
 
+## Runnable examples
+
+Deterministic, key-free (`MockProvider`) — each maps to a section above:
+
+| Example | Shows |
+|---------|-------|
+| [`orchestrator_run_vs_manual.py`](examples/orchestrator_run_vs_manual.py) | §2 — `Server.run` auto-creation vs. building `Orchestrator(...)` by hand |
+| [`orchestrator_control_policy.py`](examples/orchestrator_control_policy.py) | §4 — `PlanPolicy`, `FlowPolicy`, and a custom policy |
+| [`orchestrator_oversight.py`](examples/orchestrator_oversight.py) | §3/§5 — `Default`/`Rubric`/`Scripted` oversight + the full turn workflow (select → pre → recovery → contribute → post → revision → stop) printed from the event log |
+| [`orchestrator_share_policy.py`](examples/orchestrator_share_policy.py) | §6 — load a shared `ControlPolicy` by name from a plugin (`pip install -e examples/plugin-example` first) |
+
 ---
 
 **Next:** [05 · Participant](05-participant.md) — who takes the turns, and how their models are bound. · [All docs](README.md)
