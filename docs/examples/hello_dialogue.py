@@ -10,6 +10,9 @@ Needs a provider key + model in the environment (or a local ``.env``):
 The orchestrator's model decides who speaks and when to stop (plan mode); each agent's model
 produces its contribution; the founder's approval is scripted here so the example is
 non-interactive. For a zero-setup version, run ``hello_dialogue_mock.py`` instead.
+
+By default every agent uses the one provider from ``.env``; see ``AGENT_MODELS`` below to give each
+agent its own provider/model (e.g. a Claude proposer and a GPT critic in the same dialogue).
 """
 
 from __future__ import annotations
@@ -55,20 +58,38 @@ async def main() -> None:
             f"set it in the environment or run hello_dialogue_mock.py (configured: {configured})"
         )
 
+    # --- per-agent providers (optional) ----------------------------------------------
+    # By default every agent AND the orchestrator use the single provider from your .env
+    # (DCP_MODEL_PROVIDER / DCP_MODEL). But DCP lets each agent run a *different* provider/model
+    # via a ModelBinding — one dialogue can mix, e.g. a Claude proposer and a GPT critic. Fill this
+    # in to try it (each provider's key must be in the environment; `dcp info` shows what's set):
+    #
+    #   AGENT_MODELS = {
+    #       "proposer": s.ModelBinding(provider="anthropic", model="claude-opus-4-8"),
+    #       "critic":   s.ModelBinding(provider="openai",    model="gpt-5.4"),
+    #       # local open-weights via an OpenAI-compatible server (vLLM / Ollama / LM Studio):
+    #       # "critic": s.ModelBinding(provider="local", model="llama3.1",
+    #       #                          base_url="http://localhost:11434/v1"),
+    #   }
+    AGENT_MODELS: dict[str, s.ModelBinding] = {}    # empty → every agent uses the .env default
+
     server.register_template(TEMPLATE)
     for pid, kind in (("proposer", s.RoleKind.AGENT), ("critic", s.RoleKind.AGENT),
                       ("founder", s.RoleKind.HUMAN)):
         server.register_participant(
-            s.Participant(participant_id=pid, kind=kind, display_name=pid.title())
+            # model_binding is per-agent (D8); None → inherit the orchestrator's default provider.
+            # (It is only valid on agent roles, so the human founder always gets None.)
+            s.Participant(participant_id=pid, kind=kind, display_name=pid.title(),
+                          model_binding=AGENT_MODELS.get(pid))
         )
     server.instantiate(
         s.TemplateRef(template_id="design-review", version="1.0.0"),
         owner="founder", instance_id="demo",
-        # The generic "design-review" template, aimed at *this* run: `goal` is the concrete objective
-        # (overrides the template's generic goal), `termination` sets this run's completion condition
-        # and caps (overrides the template's), and `brief` carries the task specifics. All reach the
-        # orchestrator and every agent — so the proposer names *this* product, not one invented from
-        # thin air. Re-run the same template with a different goal/termination/brief for any review.
+        # The generic "design-review" template, aimed at *this* run: `goal` is the concrete
+        # objective (overrides the template's generic goal), `termination` sets this run's
+        # completion condition and caps (overrides the template's), and `brief` the task specifics.
+        # All reach the orchestrator and every agent — so the proposer names *this* product, not one
+        # invented from thin air. Re-run the same template with a new goal/termination/brief later.
         goal="Agree on a product name the founder approves.",
         termination=s.TerminationPolicy(condition="the founder approves the name", max_turns=6),
         brief={
