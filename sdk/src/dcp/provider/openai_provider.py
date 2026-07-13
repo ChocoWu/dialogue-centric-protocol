@@ -23,6 +23,17 @@ M = TypeVar("M", bound=BaseModel)
 _STRUCTURED_ATTEMPTS = 4
 
 
+def _is_strict_schema_error(exc: Exception) -> bool:
+    """True if OpenAI rejected the schema for *strict* structured output.
+
+    Strict mode requires every object to be closed (``additionalProperties: false``), which a schema
+    with an open ``dict`` field (e.g. a model's ``metadata``) can never satisfy. Such a schema will
+    fail every strict attempt, so the caller must switch to a non-strict request rather than retry.
+    """
+    msg = str(exc)
+    return "response_format" in msg and ("Invalid schema" in msg or "additionalProperties" in msg)
+
+
 def _salvage_first_json(exc: ValidationError, schema: type[M]) -> M | None:
     """Recover a schema instance from a parse that failed only on **trailing** characters.
 
@@ -92,10 +103,39 @@ class OpenAIProvider:
                     return salvaged
                 last = exc
             except Exception as exc:  # noqa: BLE001 — normalize + retry any SDK/parse error
+                if _is_strict_schema_error(exc):     # schema can't be strict → non-strict, no retry
+                    return await self._structured_non_strict(messages, schema)
                 last = exc
         raise ProviderError(
             f"openai structured call failed after {_STRUCTURED_ATTEMPTS} attempts: {last}"
         ) from last
+
+    async def _structured_non_strict(
+        self, messages: list[dict[str, str]], schema: type[M]
+    ) -> M:
+        """Fallback for schemas OpenAI can't run in strict mode (open ``dict`` fields).
+
+        Request a **non-strict** ``json_schema`` (which allows open objects), then decode the
+        leading JSON object ourselves (tolerating trailing prose) and validate it against the model.
+        """
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {"name": schema.__name__, "schema": schema.model_json_schema(),
+                            "strict": False},
+        }
+        try:
+            resp = await self._client.chat.completions.create(
+                model=self.model, messages=messages, response_format=response_format,
+            )
+            raw = str(resp.choices[0].message.content or "").strip()
+            if not raw:
+                raise ProviderError("openai returned empty structured content")
+            obj, _ = json.JSONDecoder().raw_decode(raw)
+            return schema.model_validate(obj)
+        except ProviderError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            raise ProviderError(f"openai structured (non-strict) call failed: {exc}") from exc
 
 
 __all__ = ["OpenAIProvider"]

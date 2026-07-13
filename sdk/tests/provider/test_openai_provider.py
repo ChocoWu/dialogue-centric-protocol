@@ -93,6 +93,31 @@ async def test_structured_salvages_json_with_trailing_prose() -> None:
         action="go")
 
 
+class _StrictFailCompletions:
+    """``parse`` fails with a strict-schema error; ``create`` returns JSON (the non-strict path)."""
+
+    def __init__(self, *, content: str) -> None:
+        self._content = content
+
+    async def parse(self, **_: object) -> object:
+        # mimics OpenAI's 400 for a schema with an open dict field (can't be closed)
+        raise ValueError("Invalid schema for response_format 'X': additionalProperties is required")
+
+    async def create(self, **_: object) -> object:
+        msg = types.SimpleNamespace(content=self._content, parsed=None)
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=msg)])
+
+
+async def test_structured_falls_back_to_non_strict_for_open_schemas() -> None:
+    # A schema OpenAI can't run in strict mode (e.g. one with `metadata: dict`) must not fail — the
+    # provider retries as a non-strict json_schema and validates the result itself.
+    comp = _StrictFailCompletions(content='{"action":"go"}\ntrailing prose')
+    p = OpenAIProvider("m", client=types.SimpleNamespace(
+        chat=types.SimpleNamespace(completions=comp)))
+    assert await p.structured(instructions="i", content="c", schema=_Decision) == _Decision(
+        action="go")
+
+
 async def test_structured_retries_transient_parse_failures() -> None:
     # A couple of bad emissions must not kill the call — it retries and returns the good parse.
     comp = _FlakyCompletions(fail_first=2, parsed=_Decision(action="go"))

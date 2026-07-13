@@ -59,7 +59,8 @@ def _cmd_plugins(args: argparse.Namespace) -> int:
 
     found = list_plugins()
     if not found:
-        print("no plugins installed. Contribute components via entry points (docs/07-extending-sharing.md).")
+        print("no plugins installed. Contribute components via entry points "
+              "(docs/07-extending-sharing.md).")
         return 0
     for group in GROUPS:
         rows = [p for p in found if p.group == group]
