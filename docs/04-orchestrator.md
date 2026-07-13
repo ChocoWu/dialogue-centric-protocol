@@ -123,11 +123,46 @@ await server.run("demo", cast=..., oversight=oversight)
 By default a safety failure escalates to a human gate, any other non-`ok` requests a revision, and an all-`ok` turn continues — override with `verdict_fn=...`. 
 **The full-control way**: implement `pre` and `post` yourself (see `LlmOversight` for a reference).
 
-## 6 · Share a policy
+## 6 · Build your own orchestrator
+
+You never subclass the `Orchestrator` — its runtime (turn serialization, oversight, recovery, termination, replay) is fixed and correctness-critical. **Building your own orchestrator means composing it from your own brains:** a custom `ControlPolicy` (§4 — who speaks / when to stop) and, optionally, a custom `OversightPolicy` (§5 — what's acceptable). Hand them to `Server.run(...)` or `Orchestrator(...)`; the runtime does the rest ("policy proposes, runtime disposes").
+
+Your `decide(ctx)` reads a rich, read-only `DialogueContext` — the replayed state — to make its call:
+
+| From `ctx` | Use it to |
+|-----------|-----------|
+| `goal` · `brief` · `termination_condition` | know the run's intent (especially for a model-backed brain) |
+| `roles` · `roster` · `filled_role_ids()` | know the seats and who is cast |
+| `messages` · `transcript()` · `last_speaker` | see what's been said; alternate or route |
+| `turn` · `max_turns` · `over_turn_cap()` · `budget` | respect the budget |
+| `rejected_this_turn` | skip candidates a pre-check just found unavailable |
+| `provider` | call `ctx.provider.structured(...)` for a model-backed decision |
+
+```python
+class ModeratedDebatePolicy:
+    """Alternate two debaters for N rounds each, then let the judge close — no model needed."""
+    def __init__(self, *, debaters, judge, rounds=2):
+        self._debaters, self._judge, self._rounds = debaters, judge, rounds
+    async def decide(self, ctx):
+        counts = Counter(m.role_id for m in ctx.messages)
+        owed = [d for d in self._debaters if counts[d] < self._rounds]
+        if owed:                                                # least-spoken, avoid the last speaker
+            return OrchestratorAction(action="select_speaker",
+                                      target_role_id=min(owed, key=lambda d: (counts[d], d == ctx.last_speaker)))
+        if counts[self._judge] == 0:
+            return OrchestratorAction(action="select_speaker", target_role_id=self._judge)
+        return OrchestratorAction(action="stop", status=TerminationStatus.DONE)
+
+await server.run("demo", cast=..., control_policy=ModeratedDebatePolicy(
+    debaters=("optimist", "skeptic"), judge="judge"))   # + oversight=… for a custom verification brain
+```
+
+The full runnable version (with a commented model-backed `decide` that calls `ctx.provider.structured`) is [`orchestrator_build_own.py`](examples/orchestrator_build_own.py). For a custom orchestrator in a real system, see the [research-companion walkthrough](walkthrough-research-companion.md).
+
+## 7 · Share a policy
 
 A `ControlPolicy` or `OversightPolicy` ships like any component — declare a `dcp.control_policies` / `dcp.oversight_policies` entry point (or a portable component manifest) so others resolve it by name.
-See [07 · Extending & Sharing](07-extending-sharing.md). 
-For a full custom orchestrator in a real system, see the [research-companion walkthrough](walkthrough-research-companion.md).
+See [07 · Extending & Sharing](07-extending-sharing.md).
 
 ## Runnable examples
 
@@ -138,7 +173,8 @@ Deterministic, key-free (`MockProvider`) — each maps to a section above:
 | [`orchestrator_run_vs_manual.py`](examples/orchestrator_run_vs_manual.py) | §2 — `Server.run` auto-creation vs. building `Orchestrator(...)` by hand |
 | [`orchestrator_control_policy.py`](examples/orchestrator_control_policy.py) | §4 — `PlanPolicy`, `FlowPolicy`, and a custom policy |
 | [`orchestrator_oversight.py`](examples/orchestrator_oversight.py) | §3/§5 — `Default`/`Rubric`/`Scripted` oversight + the full turn workflow (select → pre → recovery → contribute → post → revision → stop) printed from the event log |
-| [`orchestrator_share_policy.py`](examples/orchestrator_share_policy.py) | §6 — load a shared `ControlPolicy` by name from a plugin (`pip install -e examples/plugin-example` first) |
+| [`orchestrator_build_own.py`](examples/orchestrator_build_own.py) | §6 — build your own orchestrator: a custom debate-moderator `ControlPolicy` that reads the `DialogueContext` |
+| [`orchestrator_share_policy.py`](examples/orchestrator_share_policy.py) | §7 — load a shared `ControlPolicy` by name from a plugin (`pip install -e examples/plugin-example` first) |
 
 ---
 
