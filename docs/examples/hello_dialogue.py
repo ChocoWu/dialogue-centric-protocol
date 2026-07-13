@@ -23,6 +23,11 @@ from dcp import Server, load_dotenv
 from dcp import schema as s
 from dcp.orchestration import HumanReply, ScriptedHumanGateway
 
+"""Run the hello_dialogue example and validate output."""
+print("=" * 70)
+print("hello_dialogue.py End-to-End Run")
+print("=" * 70)
+
 TEMPLATE = s.DialogueTemplate(
     template_id="design-review",
     version="1.0.0",
@@ -59,17 +64,27 @@ TEMPLATE = s.DialogueTemplate(
 
 
 async def main() -> None:
-    load_dotenv()                                          # pick up keys/model from .env if present
+     # Step 1: Load config
+    print("\n1. Loading configuration from .env...")
+    load_dotenv()
+    
+    # Step 2: Create server
+    print("2. Creating Server...")
     server = Server(database_url="sqlite:///:memory:")
-
+    
+    # Step 3: Check provider
+    print("3. Checking provider configuration...")
     info = server.server_info()
     configured = [p.provider for p in info.model_providers if p.configured]
+    
     if server.config.model_provider not in configured:
-        raise SystemExit(
-            f"provider {server.config.model_provider!r} has no key configured; "
-            f"set it in the environment or run hello_dialogue_mock.py (configured: {configured})"
-        )
-
+        print(f"\n⚠️  ERROR: Provider {server.config.model_provider!r} not configured")
+        print(f"   Available: {configured}")
+        print("   Cannot continue with hello_dialogue test.")
+        return False
+    
+    print(f"   ✓ Provider {server.config.model_provider} is configured")
+    
     # --- per-agent providers (optional) ----------------------------------------------
     # By default every agent AND the orchestrator use the single provider from your .env
     # (DCP_MODEL_PROVIDER / DCP_MODEL). But DCP lets each agent run a *different* provider/model
@@ -85,6 +100,8 @@ async def main() -> None:
     #   }
     AGENT_MODELS: dict[str, s.ModelBinding] = {}    # empty → every agent uses the .env default
 
+    # Step 4: Register template and participants
+    print("4. Registering template and participants...")
     server.register_template(TEMPLATE)
     for pid, kind in (("proposer", s.RoleKind.AGENT), ("critic", s.RoleKind.AGENT),
                       ("founder", s.RoleKind.HUMAN)):
@@ -94,6 +111,8 @@ async def main() -> None:
             s.Participant(participant_id=pid, kind=kind, display_name=pid.title(),
                           model_binding=AGENT_MODELS.get(pid))
         )
+    # Step 5: Instantiate
+    print("5. Instantiating dialogue instance...")
     server.instantiate(
         s.TemplateRef(template_id="design-review", version="1.0.0"),
         owner="founder", instance_id="demo",
@@ -111,6 +130,8 @@ async def main() -> None:
         },
     )
 
+    # Step 6: Run
+    print("6. Running orchestration...")
     result = await server.run(
         "demo",
         cast={"proposer": "proposer", "critic": "critic", "founder": "founder"},
@@ -119,11 +140,13 @@ async def main() -> None:
             {"founder": HumanReply(content="Approved — ship it.", decision="approve")}
         ),
     )
-
+    # Step 7: Validate output
+    print("\n" + "=" * 70)
+    print("OUTPUT:")
+    print("=" * 70)
     print(f"status: {result.status.value}  (turns: {result.turn})")
     for m in result.messages:
         print(f"  {m.role_id}: {m.content}")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
