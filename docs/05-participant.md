@@ -20,7 +20,7 @@ At run time you **cast** roles to participants: `cast={"proposer": "proposer", "
 Humans are first-class turn-takers, not a bolt-on. 
 How a human participates is set by the **role's** `response_requirement`:
 
-![Human intervention — three modes](../figures/human_intervention_three_modes.svg)
+![Human intervention — three modes](../figures/new/human_intervention_modes.svg)
 
 | Mode | `response_requirement` | Waits? | Config |
 |------|------------------------|--------|--------|

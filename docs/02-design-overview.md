@@ -1,31 +1,25 @@
 # Design Overview
 
-The whole map, at concept level. This is the mental model behind the SDK; once it clicks, every
-other doc is a detail of one box below. The normative source is [`SPEC.md`](../SPEC.md) (section
-references `§` point into it); this page is the readable companion.
+The whole map, at concept level. This is the mental model behind the SDK; once it clicks, every other doc is a detail of one box below. 
+The normative source is [`SPEC.md`](../SPEC.md) (section references `§` point into it); this page is the readable companion.
 
 ## What DCP is
 
-A DCP dialogue is a **single serialized transcript** that many participants — agents *and* humans —
-contribute to, one turn at a time, under the control of an **orchestrator** that is *not* itself a
-participant. The orchestrator does two jobs at once (§1.7):
+A DCP dialogue is a **single serialized transcript** that many participants — agents *and* humans — contribute to, one turn at a time, under the control of an **orchestrator** that is *not* itself a participant. 
+The orchestrator does two jobs at once (§1.7):
 
 - **Control** — decide who speaks next, inject context, route for revision, open gates, and stop.
-- **Oversight** — verify each turn *before* it happens (is this speaker ready?) and *after* (is the
-  output good?), and act on the result.
+- **Oversight** — verify each turn *before* it happens (is this speaker ready?) and *after* (is the output good?), and act on the result.
 
-Everything that happens is recorded as an **append-only log**; the dialogue's state is a
-deterministic replay of that log. That one decision (D3) is what makes any dialogue auditable,
-resumable, and joinable mid-flight.
+Everything that happens is recorded as an **append-only log**; the dialogue's state is a deterministic replay of that log. 
+That one decision (D3) is what makes any dialogue auditable, resumable, and joinable mid-flight.
 
-**The problem it solves.** Multi-agent frameworks tend to hard-wire one control loop and treat humans
-as a bolt-on. DCP makes the *conversation* the primitive: a typed, replayable transcript with a
-pluggable brain (control + oversight), humans as first-class turn-takers, and a clean split between
-the reusable *pattern* and the per-run *task*.
+**The problem it solves.** Multi-agent frameworks tend to hard-wire one control loop and treat humans as a bolt-on. 
+DCP makes the *conversation* the primitive: a typed, replayable transcript with a pluggable brain (control + oversight), humans as first-class turn-takers, and a clean split between the reusable *pattern* and the per-run *task*.
 
 ## The entities
 
-![Entity overview](../figures/protocol_entity_overview.svg)
+![Entity overview](../figures/new/protocol_entity_overview.svg)
 
 | Entity | What it is | Lives in | Detailed in |
 |--------|-----------|----------|-------------|
@@ -56,7 +50,7 @@ So one "design review" template serves naming, API review, or architecture revie
 
 DCP is defined abstract-model-first, transport-last. Each layer maps to a Python subpackage, and the semantic core never imports a transport — delivery is an adapter.
 
-![Protocol stack](../figures/four_layer_protocol_stack.svg)
+![Protocol stack](../figures/new/five_layer_protocol_stack.svg)
 
 | Layer | Responsibility | Package | Doc |
 |-------|----------------|---------|-----|
@@ -70,7 +64,7 @@ Plus `dcp.provider` (the model edge, [05](05-participant.md)) and `dcp.authoring
 
 ## The runtime flow
 
-![Lifecycle overview](../figures/dialogue_lifecycle_overview.svg)
+![Lifecycle overview](../figures/new/dialogue_lifecycle_overview.svg)
 
 ```
 author template → register → (optional auto-generate) → instantiate (goal/brief/termination)
