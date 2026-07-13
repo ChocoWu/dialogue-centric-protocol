@@ -105,7 +105,7 @@ class TransformersProvider:
                     messages, tokenize=False, add_generation_prompt=True)
             inputs = tokenizer([prompt], return_tensors="pt").to(model.device)
             output = model.generate(**inputs, max_new_tokens=max_new)
-            new_tokens = output[0][inputs.input_ids.shape[1]:]
+            new_tokens = output[0][len(inputs.input_ids[0]):].tolist() 
             decoded: str = tokenizer.decode(new_tokens, skip_special_tokens=True)
             return decoded.split("</think>", 1)[-1].strip()
 
