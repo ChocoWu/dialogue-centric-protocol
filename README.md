@@ -179,4 +179,4 @@ CI runs the full gate on SQLite and a separate job against a real Postgres (see 
 
 ## License
 
-Not yet chosen — to be selected before public release. Until then, all rights reserved.
+This project is open-sourced under the **MIT License** — see [LICENSE](LICENSE).
