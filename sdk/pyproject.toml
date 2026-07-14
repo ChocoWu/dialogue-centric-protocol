@@ -8,13 +8,12 @@ version = "0.2.0.dev0"                     # package version (PEP 440); wire pro
 description = "Dialogue-centric Protocol — reference Python SDK for human-agent multi-agent dialogue"
 readme = "../README.md"
 requires-python = ">=3.11"
-# license: TODO(owner) — choose before public release (Apache-2.0 / MIT). No LICENSE file committed yet.
-license = { text = "LicenseRef-UNLICENSED" }
-authors = [{ name = "DCP Authors" }]
+license = { text = "MIT" }                 # full text in ../LICENSE
 keywords = ["dialogue", "multi-agent", "protocol", "orchestration", "human-in-the-loop", "llm", "agents"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
